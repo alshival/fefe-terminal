@@ -1,0 +1,9 @@
+Package: fefe
+Version: 1.0
+Section: utils
+Priority: optional
+Architecture: all
+Depends: python3
+Maintainer: Alshival's Data Service <support@alshival.com>
+Description: Fefe is a command-line tool for interacting with the OpenAI API.
+ A longer description of what Fefe does and how to use it.

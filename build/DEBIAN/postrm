@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Remove the tools directory if it's empty
+if [ -d "/usr/share/fefe/tools" ]; then
+  rm -rf /usr/share/fefe/tools
+fi
+
+# Optionally, remove the entire /usr/share/fefe directory if empty
+if [ -d "/usr/share/fefe" ]; then
+  rmdir --ignore-fail-on-non-empty /usr/share/fefe
+fi
+
+exit 0
