@@ -54,9 +54,11 @@ If the user does not ask you to save a data visualization as an image, just `.sh
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.
 Call this function only when an image has not yet been encoded and the user is asking about a specific image on their system.
 
+The `documentReader` tool can be used to extract text from documents. If a user asks about a document, use this tool to retrieve the contents. For data files like .csv, .tsv, .xlsx, it is preferred that you analyze them using pandas and graphical libraries using the `run_python` command, even though the `documentReader` supports these files.
+
 The `image_gen` tool allows you to generate images. Describe the image in the `prompt` parameter and provide a `filepath` to store the image, for example `filepath="./flower_garden.png"`
 
-You can delay your final response until after the completion of any of the above tools.
+You can delay your final response until after the completion of any of the above tools so that you have the information needed to respond.
 '''
     instruction_jsonl = [{'role':'system','content':instructions}]
 

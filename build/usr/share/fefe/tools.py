@@ -1,7 +1,7 @@
 from src import run_commands
 from src import functions 
 from src import view_image
-from src import pdfReader
+from src import documentReader
 from src import run_python
 from src import browser 
 from src import image_gen
@@ -13,7 +13,7 @@ available_tools = {
     'run_commands': run_commands.run_commands,
     'run_python': run_python.run_python,
     'view_image': view_image.view_image,
-    'pdfReader': pdfReader.pdfReader,
+    'pdfReader': documentReader.pdfReader,
     'browser': browser.browser,
     'image_gen': image_gen.image_gen,
 }
@@ -22,7 +22,7 @@ tools = [
     run_commands.spec,
     run_python.spec,
     view_image.spec,
-    pdfReader.spec,
+    documentReader.spec,
     browser.spec,
     image_gen.spec,
     ]

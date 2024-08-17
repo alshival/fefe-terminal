@@ -227,7 +227,7 @@ def update_personality():
 
 def clear_chat_history():
     print("Would you like to wipe Fefe's memory?")
-    answer = input("Yes/No").strip()
+    answer = input("Yes/No: ").strip()
     if not answer:
         print("Fefe's memory was not wiped.")
     if answer in ['Y','y','yes','Yes','YES']:
