@@ -102,7 +102,7 @@ def run_command(command,verbose):
 def run_commands(commands,verbose=False):
     outputs = []
     for command in commands:
-        print(f"Running command: {command}")
+        print(f"\nRunning command: {command}\n")
         command_output = run_command(command, verbose)
         outputs.append(command_output)
     
