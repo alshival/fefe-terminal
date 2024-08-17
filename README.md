@@ -93,7 +93,7 @@ Fefe-Terminal provides base-line functionality expected from AI/OS integration. 
 
 Let's say we wish to avoid GraphRAG for now and wish to implement Naive RAG for the time being. A vector database for each directory can be constructed, containing information about the content in that directory. This could improve local search by bounding the content of a vector database to a single directory. But this approach impacts global semantic search. This is the exact situation GraphRAG could come into play. But the computational cost of implementing such a solution makes it impractical for the average person. 
 
-In the coming months, I will experiment with directory-wise vector databases for retrieval augmented generation.
+In the coming months, I will experiment with directory-wise vector databases for retrieval augmented generation. My idea is to construct/update a directory's vector database as needed to avoid having to schedule a process to keep each directory's vector database up-to-date If the files in a directory haven't been touched since the vector database was last updated, then proceed with RAG. If there have been changes since the vector database was constructed or the vector database does not exist, then update or create the vector database. 
 
 ## Contributing
 
