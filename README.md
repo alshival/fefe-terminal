@@ -3,7 +3,7 @@ By [Alshival's Data Service](https://alshival.com)
 
 **Fefe** is a powerful AI assistant designed specifically for Linux users, with a current focus on Ubuntu. Communicate with Fefe directly from your terminal to perform various tasks, from running command-line commands to generating insightful visualizations.
 
-<figcaption>Fefe can execute code</figcaption>
+<figcaption>Fefe can write/execute command line and python code</figcaption>
 <img src="https://github.com/alshival/fefe-terminal/blob/main/media/Screenshot%20from%202024-08-16%2012-45-09.png">
 
 <figcaption>Fefe can interact with files on your Ubuntu System</figcaption>
