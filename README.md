@@ -85,13 +85,12 @@ fefe-setup --help
 ```
 
 # TO-DO
-1. Add token limit check using tiktoken.
+1. Align with OpenAi's approach to including tool call results (In progress)
 2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
+3. Semantic search.
 
 # Future Work
 Fefe-Terminal provides base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. Questions like "can you find the file where I wrote about my trip to Antartica?" are difficult for Fefe to answer at the moment. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Still, it is worth exploring, and if vector databases are used only when such a request is made, response times should remain unaffected.
-
-Let's say we wish to avoid GraphRAG for now and wish to implement Naive RAG for the time being. A vector database for each directory can be constructed, containing information about the content in that directory. This could improve local search by bounding the content of a vector database to a single directory. But this approach impacts global semantic search. Or we could just include the directory path as metadata, which is probably the better option.
 
 ## Contributing
 
