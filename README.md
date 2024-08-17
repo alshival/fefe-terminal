@@ -86,8 +86,10 @@ fefe-setup --help
 
 # TO-DO
 1. Add token limit check using tiktoken.
-2. Clean up the `fefe-setup` scripts to use SQL `UPDATE` commands instead of the `set_config`. This will clean up the code significantly and make it easier to maintain.
-3. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
+2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
+
+# Future Work
+1. Fefe-Terminal is the base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Though it is worth exploring.
 
 ## Contributing
 
