@@ -1,8 +1,8 @@
 Package: fefe
-Version: 1.0
+Version: 1.1
 Section: utils
 Priority: optional
 Architecture: all
 Depends: python3
 Maintainer: Alshival's Data Service <support@alshival.com>
-Description: Fefe is a command-line GPT integrated with the Ubuntu operating system.
+Description: Fefe is an advanced terminal-based GPT integrated with the Ubuntu operating system.

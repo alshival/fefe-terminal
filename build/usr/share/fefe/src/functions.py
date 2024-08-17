@@ -56,11 +56,11 @@ def get_home_path():
 def get_config():
     conn = db_connect()
     c = conn.cursor()
-    c.execute("SELECT api_key, org_id, os_info, personality, user_display_name FROM config LIMIT 1")
+    c.execute("SELECT api_key, org_id, os_info, personality, user_display_name, wls FROM config LIMIT 1")
     row = c.fetchone()
     conn.close()
     if row:
-        return row[0], row[1], row[2], row[3], row[4] 
+        return row[0], row[1], row[2], row[3], row[4], row[5]
     else:
         print("API key not found. Please run 'fefe-setup' to configure.")
         sys.exit(1)
