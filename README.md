@@ -89,7 +89,7 @@ fefe-setup --help
 2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
 
 # Future Work
-Fefe-Terminal is the base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Though it is worth exploring.
+Fefe-Terminal provides base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Though it is worth exploring.
 Let's say we wish to avoid GraphRAG for now and wish to implement Naive RAG for the time being. Each directory can have its own vector database which contains information about the content in the directory. This could improve performance in some cases by bounding the content of a vector database to a single directory. But this approach impacts global semantic search significantly. This is the exact situation GraphRAG could come into play. But the computational cost of implementing such a solution makes it impractical for the average person. 
 
 ## Contributing
