@@ -1,2 +1,3 @@
 usr/share/fefe/*
 usr/bin/*
+DEBIAN/postinst

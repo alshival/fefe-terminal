@@ -25,7 +25,7 @@ def print_help():
       organization-id       Update your Organization ID.
       personality           Update the personality for your fefe configuration.
       wipe-memory           Wipe Fefe's memory. Clears the chat history.
-      wls            Enable or disable WLS (Windows Linux Subsystem) support.
+      wsl            Enable or disable wsl (Windows Linux Subsystem) support.
       (no option)           Run the setup process to configure your OpenAI API key,
                             Organization ID, system information, sudo password, 
                             text color, and personality.
@@ -34,7 +34,7 @@ def print_help():
       The fefe-setup command is used to initialize or update the configuration
       for the 'fefe' command-line tool. You can set or update your OpenAI API key,
       Organization ID, system information, sudo password, text color, personality, 
-      and WLS (Windows Linux Subsystem) support.
+      and wsl (Windows Linux Subsystem) support.
       
     Examples:
       fefe-setup            Starts the setup process.
@@ -47,7 +47,7 @@ def print_help():
                            Updates the personality for your fefe configuration.
       fefe-setup wipe-memory
                            Wipe Fefe's memory. Useful when bot becomes confused or when you wish to start fresh.
-      fefe-setup wls Enable or disable WLS support.
+      fefe-setup WSL Enable or disable Windows Subsystem for Linux support.
     """
     print(help_message)
 
@@ -63,7 +63,7 @@ def initialize_db():
                     sudo_password TEXT,
                     personality TEXT,
                     user_display_name TEXT,
-                    wls INTEGER
+                    wsl INTEGER
                 );''')
     c.execute('''CREATE TABLE IF NOT EXISTS chat_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,23 +71,16 @@ def initialize_db():
                     source TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
               );''')
-    # c.execute('''CREATE TABLE IF NOT EXISTS file_index (
-    #                 filepath TEXT PRIMARY KEY,
-    #                 last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    #           );''')
-    # c.execute('''CREATE TABLE IF NOT EXISTS directory_index (
-    #                 path TEXT PRIMARY KEY,
-    #                 last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    #           );''')
+
     conn.commit()
     conn.close()
 
-def set_config(api_key=None, org_id=None, os_info=None, text_color=None, sudo_password=None, personality=None, user_display_name = None, wls = None):
+def set_config(api_key=None, org_id=None, os_info=None, text_color=None, sudo_password=None, personality=None, user_display_name = None, wsl = None):
     conn = functions.db_connect()
     c = conn.cursor()
     c.execute("DELETE FROM config")  # Ensure only one entry is stored
-    c.execute("""INSERT INTO config (api_key, org_id, os_info, text_color, sudo_password, personality, user_display_name, wls) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (api_key, org_id, os_info, text_color, sudo_password, personality, user_display_name, wls))
+    c.execute("""INSERT INTO config (api_key, org_id, os_info, text_color, sudo_password, personality, user_display_name, wsl) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (api_key, org_id, os_info, text_color, sudo_password, personality, user_display_name, wsl))
     conn.commit()
     conn.close()
     print("Configuration has been saved.")
@@ -109,11 +102,11 @@ def setup():
 
     answer = input("Are you using Ubuntu with Windows Linux Subsystem? (Yes/No [Default]): ").strip()
     if answer.lower() in ['y', 'yes']:
-        wls = 1
-        install_tkinter()  # Install tkinter if WLS is enabled
-        print('WLS support enabled.')
+        wsl = 1
+        install_tkinter()  # Install tkinter if wsl is enabled
+        print('wsl support enabled.')
     else:
-        wls = 0
+        wsl = 0
 
     n = 3  # Number of colors per row
     max_length = max(len(color_name) for color_name in functions.COLOR_OPTIONS) + 2  # Calculate the max length of color names + padding
@@ -138,7 +131,7 @@ def setup():
 
     initialize_db()
     user_display_name = user_info.get_display_name()
-    set_config(api_key, org_id, os_info, color_choice, sudo_password, default_personality, user_display_name, wls)
+    set_config(api_key, org_id, os_info, color_choice, sudo_password, default_personality, user_display_name, wsl)
     print(f"Setup complete. You can now use the 'fefe' command.")
 
 
@@ -238,21 +231,21 @@ def update_wsl():
     c = conn.cursor()
     
     if answer.lower() in ['y', 'yes']:
-        # Set WLS support to enabled
-        c.execute('UPDATE config SET wls = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (1,))
+        # Set wsl support to enabled
+        c.execute('UPDATE config SET wsl = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (1,))
         conn.commit()
         conn.close()
         
         # Install python-tk to enable TkAgg backend for matplotlib
         install_tkinter()
-        print("WLS support enabled and Tkinter installed.")
+        print("wsl support enabled and Tkinter installed.")
     else:
-        # Set WLS support to disabled
-        c.execute('UPDATE config SET wls = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (0,))
+        # Set wsl support to disabled
+        c.execute('UPDATE config SET wsl = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (0,))
         conn.commit()
         conn.close()
         
-        print("WLS support disabled.")
+        print("wsl support disabled.")
 
 def clear_chat_history():
     print("Would you like to wipe Fefe's memory?")
@@ -293,11 +286,11 @@ if __name__ == "__main__":
             update_org_id()
         elif sys.argv[1] == "personality":
             update_personality()
-        elif sys.argv[1] == "wls":
+        elif sys.argv[1] == "wsl":
             update_wsl()
         elif sys.argv[1] == "wipe-memory":
             clear_chat_history()
         else:
             print("Invalid option. Use --help or -h for usage information.")
     else:
-        print("Usage: fefe-setup [text-color | sudo | api-key | organization-id | personality | wipe-memory | wls | --help | -h]")
+        print("Usage: fefe-setup [text-color | sudo | api-key | organization-id | personality | wipe-memory | wsl | --help | -h]")

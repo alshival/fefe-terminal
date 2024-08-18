@@ -15,7 +15,7 @@ def format_response(text):
         return text
 
 def respond_to_chat(prompt_id, source = 'fefe'):
-    api_key, org_id, os_info, personality, user_display_name, wls = functions.get_config()
+    api_key, org_id, os_info, personality, user_display_name, wsl = functions.get_config()
     client = OpenAI(
         api_key=api_key,
         organization=org_id
@@ -49,12 +49,13 @@ If asked to search for files within a directory, avoid searching within subdirec
 You can use the `run_python` to execute python code by including your code in the `code` parameter. Use this tool when generating data visualizations, financial charts, or interacting with hardware like the user's webcam.
 You can use plotly (preferred) and matplotlib to create visualizations.
 If a user asks you to generate charts for stock tickers, use `run_python` with the `yfinance` package. 
-If the user does not ask you to save a data visualization as an image, just `.show()` the image. 
+When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
+You must follow up with a call to `open_image` when generating plots and charts using `run_python`.
 '''
-    if wls == 1:
-        instructions += '''
-The user is using Windows Linux Subsystem, which means that data visualizations may not show. Include `matplotlib.use(TkAgg)` when generating plots using matplotlib.
-'''
+#     if wsl == 1:
+#         instructions += '''
+# The user is using Windows Subsystem for Linux (WSL), which means that data visualizations may not show. Include `matplotlib.use(TkAgg)` when generating plots using matplotlib.
+# '''
 
     instructions += f'''
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.

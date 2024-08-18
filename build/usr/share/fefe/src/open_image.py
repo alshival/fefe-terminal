@@ -1,8 +1,27 @@
 import os
 import platform
 import subprocess
+from src import functions 
 
-def open_image(image_path):
+spec =     {
+        "type": "function",
+        "function": {
+            "name": "open_image",
+            "description": "Opens an image for a user in their default photo viewer.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "Path to the image."
+                    }
+                },
+                "required": ["filepath"]
+            }
+        }
+    }
+
+def open_image(filepath):
     """
     Opens an image file using the user's default photo app based on the operating system.
 
@@ -12,11 +31,15 @@ def open_image(image_path):
     system_name = platform.system()
     
     if system_name == 'Windows':
-        os.startfile(image_path)
+        os.startfile(filepath)
     elif system_name == 'Darwin':  # macOS
-        subprocess.run(['open', image_path])
+        subprocess.run(['open', filepath])
     elif system_name == 'Linux':
-        subprocess.run(['xdg-open', image_path])
+        wsl = functions.is_wsl()
+        if wsl:
+            subprocess.run(['wslview',filepath])
+        else:
+            subprocess.run(['xdg-open', filepath])
     else:
         raise NotImplementedError(f"Opening images is not supported on {system_name} systems.")
 

@@ -5,6 +5,7 @@ from src import documentReader
 from src import run_python
 from src import browser 
 from src import image_gen
+from src import open_image
 
 import fefe
 import json 
@@ -16,6 +17,7 @@ available_tools = {
     'documentReader': documentReader.documentReader,
     'browser': browser.browser,
     'image_gen': image_gen.image_gen,
+    'open_image': open_image.open_image
 }
 
 tools = [
@@ -25,6 +27,7 @@ tools = [
     documentReader.spec,
     browser.spec,
     image_gen.spec,
+    open_image.spec
     ]
 
 def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
@@ -97,7 +100,7 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 )
                 functions.update_chat_history({"role": "tool", "content": f'url_content: {url_data}','tool_call_id': tool_call.id},'browser')
             except Exception as e:
-                functions.update_chat_history({"role":"tool","content":f"There was an issue fetching the information from {function_args.get("url")} \n Error: \n{e}",'tool_call_id': tool_call['id']},'browser')
+                functions.update_chat_history({"role":"tool","content":f"There was an issue fetching the information from {function_args.get("url")} \n Error: \n{e}",'tool_call_id': tool_call.id},'browser')
 
         if function_name == 'image_gen':
             function_to_call(
@@ -105,6 +108,15 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 filepath = function_args.get('filepath'),
                 tool_call = tool_call
             )
+        
+        if function_name == 'open_image':
+            try:
+                function_to_call(
+                    filepath = function_args.get('filepath')
+                )
+                functions.update_chat_history({'role':'tool','content':'Image was opened for the user.','tool_call_id': tool_call.id},'open_image')
+            except Exception as e:
+                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the image for the user: {e}','tool_call_id': tool_call.id},'open_image')
 
     fefe.respond_to_chat(prompt_id)
     

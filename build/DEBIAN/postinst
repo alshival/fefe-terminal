@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+# Check if running on WSL
+if uname -r | grep -qi '(microsoft|WSL)'; then
+  echo "WSL detected. Installing wslu..."
+  sudo apt-get update
+  sudo apt-get install -y wslu python3-tk
+fi
+
+exit 0

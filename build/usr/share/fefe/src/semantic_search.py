@@ -1,5 +1,15 @@
 # This is in development. Still in the brainstorming phase. Commenting out for now.
 
+# file_index_CREATE = '''CREATE TABLE IF NOT EXISTS file_index (
+#                     filepath TEXT PRIMARY KEY,
+#                     last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#               );'''
+
+# directory_index_CREATE = '''CREATE TABLE IF NOT EXISTS directory_index (
+#                     path TEXT PRIMARY KEY,
+#                     last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#               );'''
+
 # from src import documentReader
 # from src import functions
 # import chromadb 
