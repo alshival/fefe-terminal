@@ -52,10 +52,6 @@ If a user asks you to generate charts for stock tickers, use `run_python` with t
 When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
 You must follow up with a call to `open_image` when generating plots and charts using `run_python` unless an error occurred during execution.
 '''
-#     if wsl == 1:
-#         instructions += '''
-# The user is using Windows Subsystem for Linux (WSL), which means that data visualizations may not show. Include `matplotlib.use(TkAgg)` when generating plots using matplotlib.
-# '''
 
     instructions += f'''
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.

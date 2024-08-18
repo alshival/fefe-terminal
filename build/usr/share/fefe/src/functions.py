@@ -95,7 +95,10 @@ def is_wsl():
     row = c.fetchone()
     conn.close()
     if row:
-        return row[0]
+        if row[0] == 1:
+            return True
+        else:
+            return False
     else:
         print("API key not found. Please run 'fefe-setup' to configure.")
         sys.exit(1)
