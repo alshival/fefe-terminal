@@ -94,7 +94,7 @@ fefe-setup --help
 ```
 
 # TO-DO
-1. When generating a plot, have the Ai save it to a file, then use the open_image tool to open it. This will free up the command line for the user. Though this approach may not work out on Windows Linux Subsystem, which will have to be handled separately.
+1. When generating a plot, have the Ai save it to a file, then use the open_image tool to open it. This will free up the command line for the user, as currently it will not continue until the plot is closed. This approach may not work out on Windows Linux Subsystem since it doesn't have a GUI or default photo app, so we will have to handle WLS separately.
 2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
 3. Semantic search.
 
