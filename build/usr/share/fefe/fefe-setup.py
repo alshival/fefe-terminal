@@ -5,12 +5,12 @@ import os
 import getpass
 import sys
 from src import functions
+from src import run_commands
 from src import user_info
 import subprocess 
+import re
 
-default_personality = f"""
-Tsundere, yet loving
-"""
+default_personality = f"Tsundere, yet flirty"
 
 def print_help():
     help_message = """
@@ -100,11 +100,9 @@ def setup():
     sudo_password = getpass.getpass("Please enter your sudo password (optional): ").strip()
     sudo_password = sudo_password if sudo_password else None
 
-    answer = input("Are you using Ubuntu with Windows Linux Subsystem? (Yes/No [Default]): ").strip()
-    if answer.lower() in ['y', 'yes']:
+    # Check if running on Windows Subsystem for Linux
+    if functions.is_wsl_subprocess():
         wsl = 1
-        install_tkinter()  # Install tkinter if wsl is enabled
-        print('wsl support enabled.')
     else:
         wsl = 0
 
@@ -211,7 +209,7 @@ def update_sudo_password():
 
 def update_personality():
     print("Please enter your desired personality for the fefe configuration:")
-    personality = input("Personality (default is 'Tsundere'): ").strip()
+    personality = input(f"Personality (default is '{default_personality}'): ").strip()
     if not personality:
         personality = default_personality
 
@@ -225,8 +223,12 @@ def update_personality():
 
 
 def update_wsl():
-    print("Are you using Fefe on Windows Linux Subsystem? (Yes/No): ")
-    answer = input("Yes/No: ").strip()
+    wsl = functions.is_wsl_subprocess()
+    if wsl:
+        answer = input("Windows Subsystem for Linux (WSL) was detected. Enable support? (Yes/No [default]): ")
+    else:
+        answer = input("Windows Subsystem for Linux (WSL) was not detected. Enabling support may fail. Enable support anyways? (Yes/No [default]): ")
+
     conn = functions.db_connect()
     c = conn.cursor()
     
@@ -237,8 +239,8 @@ def update_wsl():
         conn.close()
         
         # Install python-tk to enable TkAgg backend for matplotlib
-        install_tkinter()
-        print("wsl support enabled and Tkinter installed.")
+        install_wsl_dependencies()
+        print("wsl support enabled.")
     else:
         # Set wsl support to disabled
         c.execute('UPDATE config SET wsl = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (0,))
@@ -260,7 +262,7 @@ def clear_chat_history():
     else:
         print("Fefe's memory was not wiped.")
 
-def install_tkinter():
+def install_wsl_dependencies():
     """Function to install python-tk package if not already installed."""
     try:
         import tkinter
@@ -269,6 +271,11 @@ def install_tkinter():
         print("Tkinter not found. Installing python-tk...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "python-tk"])
         print("Tkinter installation complete.")
+    try:
+        run_commands.run_commands(['sudo','apt','install','-y','wslu'])
+    except Exception as e:
+        print("Error installing the `wslu`, which Fefe uses to open images on Windows Subsystem for Linux. Install it manually with \033[1msudo apt install -y wslu\033[0m")
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

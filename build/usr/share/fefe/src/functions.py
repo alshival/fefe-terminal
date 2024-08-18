@@ -100,6 +100,19 @@ def is_wsl():
         print("API key not found. Please run 'fefe-setup' to configure.")
         sys.exit(1)
 
+def is_wsl_subprocess():
+    import subprocess
+    try:
+        # Run the uname -r command
+        output = subprocess.check_output(['uname', '-r'], text=True).strip()
+        
+        # Check if "microsoft" or "WSL" is in the output
+        if 'microsoft' in output.lower() or 'wsl' in output.lower():
+            return True
+        return False
+    except subprocess.CalledProcessError:
+        return False
+
 COLOR_OPTIONS = {
     "black": "\033[30m",
     "red": "\033[31m",
