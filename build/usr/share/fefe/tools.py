@@ -6,7 +6,7 @@ from src import run_python
 from src import browser 
 from src import image_gen
 from src import open_image
-
+from src import music_player
 import fefe
 import json 
 
@@ -17,7 +17,8 @@ available_tools = {
     'documentReader': documentReader.documentReader,
     'browser': browser.browser,
     'image_gen': image_gen.image_gen,
-    'open_image': open_image.open_image
+    'open_image': open_image.open_image,
+    'music_player': music_player.music_player
 }
 
 tools = [
@@ -27,7 +28,8 @@ tools = [
     documentReader.spec,
     browser.spec,
     image_gen.spec,
-    open_image.spec
+    open_image.spec,
+    music_player.spec,
     ]
 
 def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
@@ -117,6 +119,14 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 functions.update_chat_history({'role':'tool','content':'Image was opened for the user.','tool_call_id': tool_call.id},'open_image')
             except Exception as e:
                 functions.update_chat_history({'role':'tool','content':f'There was an issue opening the image for the user: {e}','tool_call_id': tool_call.id},'open_image')
+        if function_name == 'music_player':
+            try:
+                function_to_call(
+                    filepath = function_args.get('filepath',None)
+                )
+                functions.update_chat_history({'role':'tool','content':'The music player was opened for the user.','tool_call_id': tool_call.id},'open_image')
+            except Exception as e:
+                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the music player for the user: {e}','tool_call_id': tool_call.id},'open_image')
 
     fefe.respond_to_chat(prompt_id)
     

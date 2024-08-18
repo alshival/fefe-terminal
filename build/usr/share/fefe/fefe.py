@@ -56,7 +56,7 @@ You must follow up with a call to `open_image` when generating plots and charts 
     instructions += f'''
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.
 Call this function only when an image has not yet been encoded and the user is asking about a specific image on their system.
-
+The `music_player` tool allows you to play audio using the user's music player. Include the path to an audio file to play a specific audio in their default music player. If you do not provide a filepath, their music player will open and the Rick Roll song will play.
 The `documentReader` tool can be used to extract text for documents of the following types:
 ```
     '.pdf',   # PDF Documents
