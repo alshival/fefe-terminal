@@ -29,8 +29,6 @@ Description of your personality and relationship with {user_display_name}:
 {personality}
 ```
 
-Current timestamp: {datetime.now()}
-
 User's current working directory: {os.getcwd()}
 '''
     if len(os.listdir('.')) <= 25:
@@ -44,6 +42,7 @@ Files:
 Operating System: {os_info}
 
 You can use the `run_commands` tool for interacting with the user's operating system. If you are executing python code, use the `run_python` tool instead. To use the `run_commands` tool, pass the commands to be run as a list in the `commands` parameter. Do not set `verbose=True` unless the user specifically requests that you show them the output.
+The outputs of each command run are independent of one-another, so utilize the pipe operator when needed, such as `commands=['ls -lt | head -n 1']` instead of `commands=['ls -lt','head -n 1']`.
 For example, if a linux user wishes to know the path to the current directory, you can use `run_commands` with `commands=['pwd']`. 
 If asked to search for files within a directory, avoid searching within subdirectories unless asked by the user to search within subdirectories. For example, if asked about files older than a week in the current directory, you would use something like `find . -maxdepth 1 -type f -mtime +7` to avoid searching within subdirectories unless the user requests that you search deeper.
 
@@ -57,15 +56,53 @@ If the user does not ask you to save a data visualization as an image, just `.sh
 The user is using Windows Linux Subsystem, which means that data visualizations may not show. Include `matplotlib.use(TkAgg)` when generating plots using matplotlib.
 '''
 
-    instructions += '''
+    instructions += f'''
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.
 Call this function only when an image has not yet been encoded and the user is asking about a specific image on their system.
 
-The `documentReader` tool can be used to extract text from documents. If a user asks about a document, use this tool to retrieve the contents. For data files like .csv, .tsv, .xlsx, it is preferred that you analyze them using pandas and graphical libraries using the `run_python` command, even though the `documentReader` supports these files.
+The `documentReader` tool can be used to extract text for documents of the following types:
+```
+    '.pdf',   # PDF Documents
+    '.txt',   # Plain Text Files
+    '.md',    # Markdown Files
+    '.docx',  # Word Documents
+    '.html',  # HTML Files
+    '.rtf',   # Rich Text Format Files
+    '.json',  # JSON Files
+    '.sh',    # Shell Script Files
+    '.xml',   # XML Files
+    '.yaml',  # YAML Files
+    '.ini',   # INI Configuration Files
+    '.log'    # Log Files
+```
+If a user asks about a document, use `documentReader` to retrieve the contents. For data files like .csv, .tsv, .xlsx, it is preferred that you analyze them using pandas and graphical libraries using the `run_python` command, even though the `documentReader` supports these files.
 
 The `image_gen` tool allows you to generate images. Describe the image in the `prompt` parameter and provide a `filepath` to store the image, for example `filepath="./flower_garden.png"`
 
+The `browser` tool allows you to interact with websites. If asked to do a search, utilize a site's `/search?q=<query>` endpoint. For example, if asked to search for a recipe for homemade lemonade,
+```
+https://www.google.com/search?q=homemade+lemonade
+https://www.bing.com/search?q=homemade+lemonade
+https://www.duckduckgo.com/search?q=homemade+lemonade
+https://www.allrecipes.com/search?q=homemade+lemonade
+```
+For more advanced searches, you can use Google's Advanced Search Parameters. The `as_qdr` parameter (`y` for year, `m` for month, `w` for week`, `d` for day) can be used to filter results. Here is an example for the past month:
+```
+https://www.google.com/search?as_q=homemade+lemonade&as_epq=&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=m&as_sitesearch=&as_occt=any&as_filetype=&tbs=
+```
+Here is an example for results from `allrecipes.com` for the past year:
+```
+https://www.google.com/search?as_q=homemade+lemonade&as_epq=&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=y&as_sitesearch=allrecipes.com&as_occt=any&as_filetype=&tbs=
+```
+DuckDuckGo also provides some limited advanced search. The `df` parameter (`y` for year, `m` for month, `w` for week`, `d` for day) can be used to filter results.
+```
+https://duckduckgo.com/?q=homemade+lemonade&t=h_&df=y
+```
+When you wish to include results from multiple sources, use a tool call for each source.
+
 You can delay your final response until after the completion of any of the above tools so that you have the information needed to respond.
+
+The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%S %Z%z")}.
 '''
     instruction_jsonl = [{'role':'system','content':instructions}]
 
@@ -84,11 +121,13 @@ You can delay your final response until after the completion of any of the above
     response = chat_completion.choices[0].message
     tool_calls = response.tool_calls
     if not tool_calls:
-        functions.update_chat_history({'role':'assistant','content':response.content},source)
+        #functions.update_chat_history({'role':'assistant','content':response.content},source)
+        functions.update_chat_history(response)
         formatted_response = format_response(response.content)
         print(formatted_response)
     else:
         # handle tool calls
+        functions.update_chat_history(response)
         tools.handle_tool_calls(prompt_id,tool_calls)
 def main():
     if len(sys.argv) < 2:

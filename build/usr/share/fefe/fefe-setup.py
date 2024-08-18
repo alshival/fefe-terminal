@@ -64,14 +64,21 @@ def initialize_db():
                     personality TEXT,
                     user_display_name TEXT,
                     wls INTEGER
-                )''')
+                );''')
     c.execute('''CREATE TABLE IF NOT EXISTS chat_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    jsonl TEXT,
-                    role TEXT,
+                    message TEXT,
                     source TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
               );''')
+    # c.execute('''CREATE TABLE IF NOT EXISTS file_index (
+    #                 filepath TEXT PRIMARY KEY,
+    #                 last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    #           );''')
+    # c.execute('''CREATE TABLE IF NOT EXISTS directory_index (
+    #                 path TEXT PRIMARY KEY,
+    #                 last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    #           );''')
     conn.commit()
     conn.close()
 
@@ -100,7 +107,7 @@ def setup():
     sudo_password = getpass.getpass("Please enter your sudo password (optional): ").strip()
     sudo_password = sudo_password if sudo_password else None
 
-    answer = input("Are you using Ubuntu with Windows Linux Subsystem? (Yes/No): ").strip()
+    answer = input("Are you using Ubuntu with Windows Linux Subsystem? (Yes/No [Default]): ").strip()
     if answer.lower() in ['y', 'yes']:
         wls = 1
         install_tkinter()  # Install tkinter if WLS is enabled
@@ -108,15 +115,26 @@ def setup():
     else:
         wls = 0
 
-    # Ask user to choose a text color
+    n = 3  # Number of colors per row
+    max_length = max(len(color_name) for color_name in functions.COLOR_OPTIONS) + 2  # Calculate the max length of color names + padding
     print("Please choose a text color:")
+    # Initialize a counter
+    counter = 0
+    # Display colors in rows of 'n'
     for color_name in functions.COLOR_OPTIONS:
-        print(f"{functions.COLOR_OPTIONS[color_name]}{color_name}\033[0m")
-    
+        # Print the color name with its color code, and ensure consistent width with ljust
+        print(f"{functions.COLOR_OPTIONS[color_name]}{color_name.ljust(max_length)}\033[0m", end="")
+        counter += 1
+        # Move to the next line after 'n' colors
+        if counter % n == 0:
+            print()  # New line
+    # Handle the case if the last row has fewer than 'n' items
+    if counter % n != 0:
+        print()  # Ensure the cursor moves to the next line
     color_choice = input("Enter your color choice: ").strip()
     if color_choice not in functions.COLOR_OPTIONS:
-        print("Invalid choice.")
-        color_choice = None
+        print("Invalid choice. Using default color. You can change this later using \033[1mfefe-setup text-color\033[0m")
+        return
 
     initialize_db()
     user_display_name = user_info.get_display_name()
@@ -125,10 +143,22 @@ def setup():
 
 
 def choose_text_color():
+    n = 3  # Number of colors per row
+    max_length = max(len(color_name) for color_name in functions.COLOR_OPTIONS) + 2  # Calculate the max length of color names + padding
     print("Please choose a text color:")
+    # Initialize a counter
+    counter = 0
+    # Display colors in rows of 'n'
     for color_name in functions.COLOR_OPTIONS:
-        print(f"{functions.COLOR_OPTIONS[color_name]}{color_name}\033[0m")
-    
+        # Print the color name with its color code, and ensure consistent width with ljust
+        print(f"{functions.COLOR_OPTIONS[color_name]}{color_name.ljust(max_length)}\033[0m", end="")
+        counter += 1
+        # Move to the next line after 'n' colors
+        if counter % n == 0:
+            print()  # New line
+    # Handle the case if the last row has fewer than 'n' items
+    if counter % n != 0:
+        print()  # Ensure the cursor moves to the next line
     color_choice = input("Enter your color choice: ").strip()
     if color_choice not in functions.COLOR_OPTIONS:
         print("Invalid choice. No changes were made.")
@@ -141,6 +171,7 @@ def choose_text_color():
     conn.close()
     
     print(f"Text color set to {color_choice}.")
+
 
 def update_api_key():
     api_key = getpass.getpass("Please enter your new OpenAI API key: ").strip()

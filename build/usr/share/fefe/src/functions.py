@@ -4,6 +4,11 @@ import json
 import platform
 import sys
 import tiktoken 
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletion, ChatCompletionMessage,ChatCompletionMessageToolCall
+from openai.types.chat.chat_completion_message_tool_call import Function
+from openai.types.chat.chat_completion import Choice
+
 
 class Model:
     def __init__(self, name, context_limit, response_limit):
@@ -26,6 +31,24 @@ class Model:
 model_data = {"name": "gpt-4o-mini", "context_limit": 30000, "response_limit": 5000}
 model = Model(**model_data)
 
+def check_tokens(messages,instructions = None):
+    enc = tiktoken.encoding_for_model(model.name)
+    if instructions:
+        instruction_tokens = len(enc.encode(json.dumps(instructions)))
+    else:
+        instruction_tokens = 0
+    messages_string = str(messages)
+    tokens = len(enc.encode(messages_string))
+    
+    while tokens > model.token_limit - model.response_limit - instruction_tokens:
+        # Remove the first message from the JSON list
+        messages = messages[1:]
+        
+        # Update the messages string and token count
+        messages_string = str(messages)
+        tokens = len(enc.encode(messages_string))
+    
+    return messages
 #######################################################################
 # Common functions 
 #######################################################################
@@ -66,30 +89,35 @@ def get_config():
         sys.exit(1)
 
 COLOR_OPTIONS = {
-    "Black": "\033[30m",
-    "Red": "\033[31m",
-    "Green": "\033[32m",
-    "Yellow": "\033[33m",
-    "Blue": "\033[34m",
-    "Magenta": "\033[35m",
-    "Cyan": "\033[36m",
-    "White": "\033[37m",
-    "Bright Black": "\033[90m",
-    "Bright Red": "\033[91m",
-    "Bright Green": "\033[92m",
-    "Bright Yellow": "\033[93m",
-    "Bright Blue": "\033[94m",
-    "Bright Magenta": "\033[95m",
-    "Bright Cyan": "\033[96m",
-    "Bright White": "\033[97m",
-    "Orange": "\033[38;5;214m",  # Approximate orange
-    "Lime": "\033[38;5;154m",    # Approximate lime
-    "Pink": "\033[38;5;213m",    # Approximate pink
-    "Purple": "\033[38;5;141m",  # Approximate purple
-    "Teal": "\033[38;5;37m",     # Approximate teal
-    "Olive": "\033[38;5;100m",   # Approximate olive
-    "Brown": "\033[38;5;94m",    # Approximate brown
+    "black": "\033[30m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
+    "blue": "\033[34m",
+    "magenta": "\033[35m",
+    "cyan": "\033[36m",
+    "white": "\033[37m",
+    "bright black": "\033[90m",
+    "bright red": "\033[91m",
+    "bright green": "\033[92m",
+    "bright yellow": "\033[93m",
+    "bright blue": "\033[94m",
+    "bright magenta": "\033[95m",
+    "bright cyan": "\033[96m",
+    "bright white": "\033[97m",
+    "orange": "\033[38;5;214m",  # Approximate orange
+    "lime": "\033[38;5;154m",    # Approximate lime
+    "pink": "\033[38;5;213m",    # Approximate pink
+    "purple": "\033[38;5;141m",  # Approximate purple
+    "teal": "\033[38;5;37m",     # Approximate teal
+    "olive": "\033[38;5;100m",   # Approximate olive
+    "brown": "\033[38;5;94m",    # Approximate brown
+    "gold": "\033[38;5;220m",    # Approximate gold
+    "silver": "\033[38;5;250m",  # Approximate silver
+    "navy": "\033[38;5;18m",     # Approximate navy
+    "maroon": "\033[38;5;52m",   # Approximate maroon
 }
+
 
 
 def get_text_color():
@@ -103,7 +131,11 @@ def get_text_color():
     conn.close()
     
     if result:
-        return COLOR_OPTIONS[result[0]]
+        try:
+            response = COLOR_OPTIONS[result[0]]
+        except:
+            response = None
+        return response
     else:
         return None  # Return None if no color is found
 
@@ -122,7 +154,6 @@ def get_sudo():
     else:
         return None  # Return None if no sudo password is found
 
-
 #######################################################################
 # Database functions
 #######################################################################
@@ -135,16 +166,15 @@ def db_connect():
 #----------------------------------------------------------------------
 # Chat History
 #----------------------------------------------------------------------
-def update_chat_history(jsonl, source=None):
-    role = jsonl.get('role', '')
-    jsonl_string = json.dumps(jsonl)
+def update_chat_history(message, source=None):
+    message_string = str(message)
     db = db_connect()
     cursor = db.cursor()
 
     cursor.execute("""
-    INSERT INTO chat_history (jsonl, role, source)
-    VALUES (?,?,?)
-    """, (jsonl_string, role, source,))
+    INSERT INTO chat_history (message, source)
+    VALUES (?,?)
+    """, (message_string, source,))
 
     # Retrieve the id of the newly inserted row
     chat_id = cursor.lastrowid
@@ -160,7 +190,7 @@ def get_chat_history(limit=6):
     
     cursor.execute("""
     with tbl as (
-        SELECT jsonl, role, source, timestamp
+        SELECT message, source, timestamp
         FROM chat_history
         ORDER BY timestamp desc LIMIT ?
     )
@@ -175,9 +205,8 @@ def get_chat_history(limit=6):
     # Convert the JSON strings back to Python dictionaries (if applicable)
     chat_history = []
     for row in results:
-        json_data = json.loads(row[0])
+        json_data = eval(row[0])
         chat_history.append(json_data)
-    
     
     return chat_history
 
@@ -186,7 +215,7 @@ def get_chat_message(chat_id):
     cursor = db.cursor()
 
     cursor.execute("""
-    SELECT jsonl FROM chat_history
+    SELECT message FROM chat_history
     WHERE id = ?
     """, (chat_id,))
 
@@ -194,41 +223,22 @@ def get_chat_message(chat_id):
     db.close()
 
     if result:
-        jsonl_data = json.loads(result[0])  # Convert JSON string back to a dictionary
-        return jsonl_data
+        message = eval(result[0])  # Convert JSON string back to a dictionary
+        return message
     else:
         return None  # Return None if no record is found
 
 
-def update_chat_message(chat_id, new_jsonl):
-    new_jsonl_string = json.dumps(new_jsonl)  # Convert the new JSON data to a string
+def update_chat_message(chat_id, new_message):
+    new_message_string = str(new_message)  # Convert the new JSON data to a string
     db = db_connect()
     cursor = db.cursor()
 
     cursor.execute("""
     UPDATE chat_history
-    SET jsonl = ?
+    SET message = ?
     WHERE id = ?
-    """, (new_jsonl_string, chat_id))
+    """, (new_message_string, chat_id))
 
     db.commit()
     db.close()
-
-def check_tokens(jsonl,instructions = None):
-    enc = tiktoken.encoding_for_model(model.name)
-    if instructions:
-        instruction_tokens = len(enc.encode(json.dumps(instructions)))
-    else:
-        instruction_tokens = 0
-    messages_string = json.dumps(jsonl)
-    tokens = len(enc.encode(messages_string))
-    
-    while tokens > model.token_limit - model.response_limit - instruction_tokens:
-        # Remove the first message from the JSON list
-        jsonl = jsonl[1:]
-        
-        # Update the messages string and token count
-        messages_string = json.dumps(jsonl)
-        tokens = len(enc.encode(messages_string))
-    
-    return jsonl

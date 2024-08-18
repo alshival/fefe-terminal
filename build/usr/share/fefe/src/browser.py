@@ -9,8 +9,8 @@ spec =     {
             "name": "browser",
             "description": """
 You can use the `browser` to read text on a website or to search for things, such as recipes, using Google, Bing.
-Pull textual data from websites.
-Here are some examples of how you would search for a recipe for homemade lemonade on various platforms.
+Pull textual data from websites. When asked to search, use the `/search?q=<query>` endpoint.
+For example, if asked to search for a recipe for homemade lemonade,
 ```
 https://www.google.com/search?q=homemade+lemonade
 https://www.allrecipes.com/search?q=homemade+lemonade
