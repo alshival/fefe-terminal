@@ -54,9 +54,6 @@ To install Fefe on your Ubuntu system:
    ```bash
    sudo dpkg -i ./fefe.deb
    ```
-
-## Setup
-
 After installation, set up Fefe by running:
 
 ```bash
@@ -68,6 +65,16 @@ During setup, you will be prompted to provide:
 - **OpenAI API Key**: Required to access Fefe's AI capabilities.
 - **OpenAI Organization ID** (Optional): Useful if you belong to an organization using OpenAI services.
 - **Sudo Password** (Optional): If provided, Fefe can execute commands that require elevated privileges without prompting for your password each time.
+
+<b>A SQLite database called `.fefe.db` will be created in your home directory, `~/.fefe.db`. Upgrading Fefe to the latest version may require you to delete `~/.fefe.db`.</b>  
+
+## Uninstalling/Reinstalling
+
+You can uninstall the app using
+
+```bash
+sudo dpkg -r fefe
+```
 
 ## Usage
 
@@ -85,9 +92,8 @@ fefe-setup --help
 ```
 
 # TO-DO
-1. Align with OpenAi's approach to including tool call results (In progress)
-2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
-3. Semantic search.
+1. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
+2. Semantic search.
 
 # Future Work
 Fefe-Terminal provides base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. Questions like "can you find the file where I wrote about my trip to Antartica?" are difficult for Fefe to answer at the moment. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Still, it is worth exploring, and if vector databases are used only when such a request is made, response times should remain unaffected.
