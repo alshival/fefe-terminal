@@ -50,7 +50,7 @@ You can use the `run_python` to execute python code by including your code in th
 You can use plotly (preferred) and matplotlib to create visualizations.
 If a user asks you to generate charts for stock tickers, use `run_python` with the `yfinance` package. 
 When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
-You must follow up with a call to `open_image` when generating plots and charts using `run_python`.
+You must follow up with a call to `open_image` when generating plots and charts using `run_python` unless an error occurred during execution.
 '''
 #     if wsl == 1:
 #         instructions += '''

@@ -69,7 +69,7 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 )
                 functions.update_chat_history({'role':'tool','content':f'output: {output} \n\nDone.','tool_call_id': tool_call.id},'run_python')
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},'run_python')
+                functions.update_chat_history({'role':'tool','content':f'An error occured while executing the script: {e}','tool_call_id':tool_call.id},'run_python')
 
         if function_name == 'view_image':
             try:
