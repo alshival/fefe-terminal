@@ -39,7 +39,8 @@ Run multiple commands by listing them within the `commands` parameter. For examp
     }
 
 def run_command(command,verbose):
-    child = pexpect.spawn(command, timeout=500)
+    shell_command = f'/bin/bash -c "{command}"'
+    child = pexpect.spawn(shell_command, timeout=500)
     output = ""
     error_output = ""
 
@@ -98,6 +99,20 @@ def run_command(command,verbose):
     if verbose:
         print(final_output)
     return final_output
+
+def run_command_v2(command,verbose=False):
+    password = functions.get_sudo()
+    if password is not None:
+        try:
+            # Prepare the command to echo the password and pipe it to sudo
+            full_command = f'echo {password} | sudo -S {command}'
+            result = subprocess.run(full_command, shell=True, check=True, text=True, capture_output=True)
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            return f"Error executing command: {e}\n{e.output}"
+    else:
+        run_command(command,verbose)
+
 
 def run_commands(commands,verbose=False):
     outputs = []
