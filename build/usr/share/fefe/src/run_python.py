@@ -1,8 +1,9 @@
 import contextlib
 import io
+import os
 import re
 from src import functions
-from src import view_image
+from src import encode_image
 
 spec = {
         "type": "function",
@@ -41,53 +42,27 @@ def run_python(prompt_id,code):
 
     if not code_string:
         code_string = code 
+
+    vars = {}
+
     with contextlib.redirect_stdout(output_buffer):
-        vars = {
-            'png_path1': None,
-            'png_path2': None,
-            'png_path3': None,
-            'png_path4': None,
-            'png_path5': None,
-            'jpg_path1': None,
-            'jpg_path2': None,
-            'jpg_path3': None,
-            'jpg_path4': None,
-            'jpg_path5': None,
-        }
         exec(code_string,vars,vars)
     
     # Get the captured output
     captured_output = output_buffer.getvalue()
     output_buffer.close()
     
-    # Handle images generated. This allows the bot to `view` what was created.
-    image_content = [{"type":"text","text":f'Here are the images generated from the code.'}]
-    if vars['png_path1']:
-        image_content.append(view_image.view_image(vars['png_path1']))
-    if vars['png_path2']:
-        image_content.append(view_image.view_image(vars['png_path2']))
-    if vars['png_path3']:
-        image_content.append(view_image.view_image(vars['png_path3']))
-    if vars['png_path4']:
-        image_content.append(view_image.view_image(vars['png_path4']))
-    if vars['png_path5']:
-        image_content.append(view_image.view_image(vars['png_path5']))
-    if vars['jpg_path1']:
-        image_content.append(view_image.view_image(vars['jpg_path1']))
-    if vars['jpg_path2']:
-        image_content.append(view_image.view_image(vars['jpg_path2']))
-    if vars['jpg_path3']:
-        image_content.append(view_image.view_image(vars['jpg_path3']))
-    if vars['jpg_path4']:
-        image_content.append(view_image.view_image(vars['jpg_path4']))
-    if vars['jpg_path5']:
-        image_content.append(view_image.view_image(vars['jpg_path5']))
-        
+    # # Handle images generated. This allows the bot to `view` what was created. 
+    # # Commenting it out for now because it does increase token usage.
+    # image_content = [{"type":"text","text":f'Here are the images generated from the code.'}]
+    # images = [x for x in [y for y in vars.keys() if type(vars[y]) in [str,os.PathLike, bytes]] if functions.filetype(vars[x]) in ['png', 'jpg', 'webp', 'bmp', 'tiff', 'tif', 'heif', 'heic', 'svg', 'ico']]
+    # for image in images:
+    #     image_content.append(encode_image.encode_image(vars[image]))
 
-    if len(image_content) > 1:
-        #functions.update_chat_history({'role':'user','content':user_json['content'] + image_content})
-        user_json = functions.get_chat_message(prompt_id)
-        user_json = {'role':'user','content':user_json['content'] + image_content}
-        functions.update_chat_message(prompt_id,user_json)
+    # if len(image_content) > 1:
+    #     #functions.update_chat_history({'role':'user','content':user_json['content'] + image_content})
+    #     user_json = functions.get_chat_message(prompt_id)
+    #     user_json = {'role':'user','content':user_json['content'] + image_content}
+    #     functions.update_chat_message(prompt_id,user_json)
     return code_string, captured_output
     

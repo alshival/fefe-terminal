@@ -1,12 +1,17 @@
 #!/usr/share/fefe/fefe-env/bin/python3
 
 import sys
+import openai
 from openai import OpenAI
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletion, ChatCompletionMessage,ChatCompletionMessageToolCall
+from openai.types.chat.chat_completion_message_tool_call import Function
+from openai.types.chat.chat_completion import Choice
 import os
 from datetime import datetime 
 import tools 
 from src import functions
-
+import re 
 def format_response(text):
     color = functions.get_text_color()
     if color:
@@ -50,28 +55,17 @@ You can use the `run_python` to execute python code by including your code in th
 You can use plotly (preferred) and matplotlib to create visualizations.
 If a user asks you to generate charts for stock tickers, use `run_python` with the `yfinance` package. 
 When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
+Before saving an image, assign a variable to the path. For example, `image_path = ./financial_chart.png`.
 You must follow up with a call to `open_image` when generating plots and charts using `run_python` unless an error occurred during execution.
+If there is an error executing the code, you may make up to two additional attempts. After that, notify the user of the issues you ran into.
 '''
 
     instructions += f'''
+
 The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.
 Call this function only when an image has not yet been encoded and the user is asking about a specific image on their system.
 The `music_player` tool allows you to play audio using the user's music player. Include the path to an audio file to play a specific audio in their default music player. If you do not provide a filepath, their music player will open and the Rick Roll song will play.
-The `documentReader` tool can be used to extract text for documents of the following types:
-```
-    '.pdf',   # PDF Documents
-    '.txt',   # Plain Text Files
-    '.md',    # Markdown Files
-    '.docx',  # Word Documents
-    '.html',  # HTML Files
-    '.rtf',   # Rich Text Format Files
-    '.json',  # JSON Files
-    '.sh',    # Shell Script Files
-    '.xml',   # XML Files
-    '.yaml',  # YAML Files
-    '.ini',   # INI Configuration Files
-    '.log'    # Log Files
-```
+The `documentReader` tool can be used to extract text from documents. 
 If a user asks about a document, use `documentReader` to retrieve the contents. For data files like .csv, .tsv, .xlsx, it is preferred that you analyze them using pandas and graphical libraries using the `run_python` command, even though the `documentReader` supports these files.
 
 The `image_gen` tool allows you to generate images. Describe the image in the `prompt` parameter and provide a `filepath` to store the image, for example `filepath="./flower_garden.png"`
@@ -103,28 +97,55 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
 '''
     instruction_jsonl = [{'role':'system','content':instructions}]
 
-    messages = functions.get_chat_history(limit = 10)
+    results = functions.get_chat_history(limit = 10)
+
+    # # Convert the JSON strings back to Python dictionaries (if applicable)
+    messages = []
+    for row in results:
+        json_data = eval(row[1])
+        messages.append(json_data)
+
     # Check token limit.
     messages = functions.check_tokens(messages,instruction_jsonl)
     # Prepend instructions
     messages = instruction_jsonl + messages
     #print(messages)
-    chat_completion = client.chat.completions.create(
-        messages=messages,
-        model= functions.model.name,
-        tools = tools.tools,
-        temperature=0.8
-    )
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=messages,
+            model= functions.model.name,
+            tools = tools.tools,
+            temperature=0.8
+        )
+    except openai.error.BadRequestError as e:
+        error_response = e.json_body.get('error', {})
+        error_message = error_response.get('message', '')
+        error_param = error_response.get('param', '')
+        if error_param:
+            match = re.match(r'messages\.\[(\d+)\]\.role', error_param)
+            if match:
+                message_index = int(match.group(1))
+                message_to_delete = results[message_index]
+                db = functions.db_connect()
+                cursor = db.cursor()
+                cursor.execute("delete from chat_history where id >= ?",(message_to_delete[0]))
+                db.commit()
+                db.close()
+                respond_to_chat(prompt_id)
+                return
+    except Exception as e:
+        print(f'Error: {e}')
+        return
     response = chat_completion.choices[0].message
     tool_calls = response.tool_calls
     if not tool_calls:
         #functions.update_chat_history({'role':'assistant','content':response.content},source)
-        functions.update_chat_history(response)
+        functions.update_chat_history(response,'fefe')
         formatted_response = format_response(response.content)
         print(formatted_response)
     else:
         # handle tool calls
-        functions.update_chat_history(response)
+        functions.update_chat_history(response,'fefe')
         tools.handle_tool_calls(prompt_id,tool_calls)
 def main():
     if len(sys.argv) < 2:

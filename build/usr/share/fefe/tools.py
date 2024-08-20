@@ -1,6 +1,6 @@
 from src import run_commands
 from src import functions 
-from src import view_image
+from src import encode_image
 from src import documentReader
 from src import run_python
 from src import browser 
@@ -13,7 +13,7 @@ import json
 available_tools = {
     'run_commands': run_commands.run_commands,
     'run_python': run_python.run_python,
-    'view_image': view_image.view_image,
+    'encode_image': encode_image.encode_image,
     'documentReader': documentReader.documentReader,
     'browser': browser.browser,
     'image_gen': image_gen.image_gen,
@@ -24,7 +24,7 @@ available_tools = {
 tools = [
     run_commands.spec,
     run_python.spec,
-    view_image.spec,
+    encode_image.spec,
     documentReader.spec,
     browser.spec,
     image_gen.spec,
@@ -73,7 +73,7 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
             except Exception as e:
                 functions.update_chat_history({'role':'tool','content':f'An error occured while executing the script: {e}','tool_call_id':tool_call.id},'run_python')
 
-        if function_name == 'view_image':
+        if function_name == 'encode_image':
             try:
                 image_content = function_to_call(
                     filepath = function_args.get('filepath')
@@ -81,9 +81,9 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 user_json = functions.get_chat_message(prompt_id)
                 user_json = {'role':'user','content': user_json['content'] + [image_content]}
                 functions.update_chat_message(prompt_id,user_json)
-                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user",'tool_call_id': tool_call.id},'view_image')
+                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user",'tool_call_id': tool_call.id},'encode_image')
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},'view_image')
+                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},'encode_image')
         
         if function_name == 'documentReader':
             try:

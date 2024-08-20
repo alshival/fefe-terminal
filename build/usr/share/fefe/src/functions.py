@@ -9,7 +9,6 @@ from openai.types.chat import ChatCompletion, ChatCompletionMessage,ChatCompleti
 from openai.types.chat.chat_completion_message_tool_call import Function
 from openai.types.chat.chat_completion import Choice
 
-
 class Model:
     def __init__(self, name, context_limit, response_limit):
         self.name = name
@@ -52,6 +51,13 @@ def check_tokens(messages,instructions = None):
 #######################################################################
 # Common functions 
 #######################################################################
+def filetype(filepath):
+    _, file_extension = os.path.splitext(filepath)
+    if file_extension:
+        return file_extension.lower().lstrip('.')
+    else:
+        return None
+
 def get_system_info():
     # Get the basic operating system information
     if platform.system() == 'Linux':
@@ -146,8 +152,6 @@ COLOR_OPTIONS = {
     "maroon": "\033[38;5;52m",   # Approximate maroon
 }
 
-
-
 def get_text_color():
     conn = db_connect()
     c = conn.cursor()
@@ -218,7 +222,7 @@ def get_chat_history(limit=6):
     
     cursor.execute("""
     with tbl as (
-        SELECT message, source, timestamp
+        SELECT id, message, source, timestamp
         FROM chat_history
         ORDER BY timestamp desc LIMIT ?
     )
@@ -230,13 +234,13 @@ def get_chat_history(limit=6):
     
     db.close()
     
-    # Convert the JSON strings back to Python dictionaries (if applicable)
-    chat_history = []
-    for row in results:
-        json_data = eval(row[0])
-        chat_history.append(json_data)
+    # # Convert the JSON strings back to Python dictionaries (if applicable)
+    # chat_history = []
+    # for row in results:
+    #     json_data = eval(row[0])
+    #     chat_history.append(json_data)
     
-    return chat_history
+    return results
 
 def get_chat_message(chat_id):
     db = db_connect()
@@ -268,5 +272,21 @@ def update_chat_message(chat_id, new_message):
     WHERE id = ?
     """, (new_message_string, chat_id))
 
+    db.commit()
+    db.close()
+
+def clear_chat_history(source = None):
+    db = db_connect()
+    cursor = db.cursor()
+    if source is None:
+        cursor.execute("delete from chat_history")
+    else:
+        cursor.execute("delete from chat_history where source = ?",(source,))
+    db.commit()
+    db.close()
+def delete_chat_message(chat_id):
+    db = db_connect()
+    cursor = db.cursor()
+    cursor.execute("delete from chat_history where id = ?",(chat_id,))
     db.commit()
     db.close()

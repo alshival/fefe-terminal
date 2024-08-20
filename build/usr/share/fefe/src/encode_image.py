@@ -5,7 +5,7 @@ from src import functions
 spec = {
         "type": "function",
         "function": {
-            "name": "view_image",
+            "name": "encode_image",
             "description": 
 f"""
 Allows the assistant to view image on the user's system.
@@ -24,13 +24,17 @@ Allows the assistant to view image on the user's system.
     }
 
 # Function to encode the image
-def encode_image(image_path):
+def encode_file(image_path):
   with open(image_path, "rb") as image_file:
     return base64.b64encode(image_file.read()).decode('utf-8')
 
-def view_image(filepath):
-  base64_image = encode_image(filepath)
-  return {
-      "type": "image_url",
-      "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-  }
+def encode_image(filepath):
+   base64_image = encode_file(filepath)
+   try:
+     payload = {
+       "type": "image_url",
+       "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
+       }
+     return payload 
+   except:
+     raise RuntimeError(f"Failed to encode the image from {filepath}")
