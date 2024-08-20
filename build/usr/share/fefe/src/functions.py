@@ -315,6 +315,7 @@ def clear_chat_history(source_id = None):
         cursor.execute("delete from chat_history where source_id = ?",(source_id,))
     db.commit()
     db.close()
+    
 def delete_chat_message(chat_id):
     db = db_connect()
     cursor = db.cursor()

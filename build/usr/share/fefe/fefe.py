@@ -19,7 +19,7 @@ def format_response(text):
     else:
         return text
 
-def respond_to_chat(prompt_id):
+def respond_to_chat(chat_id):
     api_key, org_id, os_info, personality, user_display_name, wsl = functions.get_config()
     client = OpenAI(
         api_key=api_key,
@@ -123,34 +123,24 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
             temperature=0.8
         )
     except openai.error.BadRequestError as e:
-        error_response = e.json_body.get('error', {})
-        error_message = error_response.get('message', '')
-        error_param = error_response.get('param', '')
-        if error_param:
-            match = re.match(r'messages\.\[(\d+)\]\.role', error_param)
-            if match:
-                message_index = int(match.group(1))
-                message_to_delete = results[message_index]
-                db = functions.db_connect()
-                cursor = db.cursor()
-                cursor.execute("delete from chat_history where id >= ?",(message_to_delete[0]))
-                db.commit()
-                db.close()
-                respond_to_chat(prompt_id)
-                return
+        user_json = functions.get_chat_message(chat_id)
+        functions.clear_chat_history()
+        chat_id = functions.update_chat_history(user_json)
+        respond_to_chat(chat_id)
+        return
     except Exception as e:
         print(f'Error: {e}')
         return
     response = chat_completion.choices[0].message
     tool_calls = response.tool_calls
     if not tool_calls:
-        functions.update_chat_history(response,prompt_id)
+        functions.update_chat_history(response,chat_id)
         formatted_response = format_response(response.content)
         print(formatted_response)
     else:
         # handle tool calls
-        functions.update_chat_history(response,prompt_id)
-        tools.handle_tool_calls(prompt_id,tool_calls)
+        functions.update_chat_history(response,chat_id)
+        tools.handle_tool_calls(chat_id,tool_calls)
 
 def main():
     if len(sys.argv) < 2:
@@ -159,9 +149,9 @@ def main():
 
     prompt = " ".join(sys.argv[1:])
     user_json = {'role':'user', 'content': [{'type':'text','text':prompt}]}
-    prompt_id = functions.update_chat_history(user_json)
+    chat_id = functions.update_chat_history(user_json)
 
-    respond_to_chat(prompt_id)
+    respond_to_chat(chat_id)
 
 if __name__ == "__main__":
     main()

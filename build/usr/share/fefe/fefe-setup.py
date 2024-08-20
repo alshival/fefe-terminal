@@ -256,12 +256,7 @@ def clear_chat_history():
     print("Would you like to wipe Fefe's memory?")
     answer = input("Yes/No: ").strip()
     if answer.lower() in ['y', 'yes']:
-        conn = functions.db_connect()
-        c = conn.cursor()
-        c.execute("DELETE FROM chat_history")
-        conn.commit()
-        conn.close()
-        print("Fefe's memory was wiped.")
+        functions.clear_chat_history()
     else:
         print("Fefe's memory was not wiped.")
 
