@@ -27,6 +27,13 @@ spec =     {
 
 def image_gen(prompt,filepath,prompt_id,tool_call):
     try:
+        db = functions.db_connect()
+        cursor = db.cursor()
+        cursor.execute("SELECT image_gen_size FROM config_extras ORDER BY id DESC LIMIT 1")
+        result = cursor.fetchone()
+        image_size = result[0]
+        db.close()
+
         api_key, org_id, os_info, personality, user_display_name, wls = functions.get_config()
         client = OpenAI(
             api_key=api_key,
@@ -35,7 +42,7 @@ def image_gen(prompt,filepath,prompt_id,tool_call):
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
-            size="1024x1024",
+            size=image_size,
             quality="standard",
             n=1,
         )

@@ -47,6 +47,7 @@ def print_help():
                            Updates your Organization ID.
       fefe-setup personality
                            Updates the personality for your fefe configuration.
+      fefe-setup image-gen  Set output size for image generator (default 1024x1024)
       fefe-setup wipe-memory
                            Wipe Fefe's memory. Useful when bot becomes confused or when you wish to start fresh.
       fefe-setup wsl        Enable or disable Windows Subsystem for Linux support.
@@ -82,7 +83,8 @@ def initialize_db():
 
     c.execute('''CREATE TABLE IF NOT EXISTS config_extras (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    google_api_key TEXT
+                    google_api_key TEXT,
+                    image_gen_size TEXT
                 );''')
     
     # Check if config_extras table is empty
@@ -91,7 +93,7 @@ def initialize_db():
     
     if count == 0:
         # Insert an empty row into config_extras if the table is empty
-        c.execute("INSERT INTO config_extras (google_api_key) VALUES (NULL)")
+        c.execute("INSERT INTO config_extras (google_api_key, image_gen_size) VALUES (NULL,'1024x1024')")
 
     c.execute('''CREATE TABLE IF NOT EXISTS chat_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -274,6 +276,31 @@ def install_wsl_dependencies():
     except Exception as e:
         print("Error installing the `wslu`, which Fefe uses to open images on Windows Subsystem for Linux. Install it manually with \033[1msudo apt install -y wslu\033[0m")
 
+def select_image_gen_size():
+    choices = ["1024x1024", "1024x1792", "1792x1024"]
+    
+    print("Set output size for image generator:")
+    for i, choice in enumerate(choices, start=1):
+        print(f"{i}. {choice}")
+    
+    while True:
+        try:
+            selection = int(input("Choose 1, 2, or 3: "))
+            if 1 <= selection <= len(choices):
+                return choices[selection - 1]
+            else:
+                print("Invalid selection, please choose a number between 1 and 3.")
+        except ValueError:
+            print("Invalid input, please enter a number.")
+
+def configure_image_gen():
+    image_size = select_image_gen_size()
+    db = functions.db_connect()
+    cursor = db.cursor()
+    cursor.execute("UPDATE config_extras SET image_gen_size = ? WHERE id = (SELECT id FROM config_extras ORDER BY id DESC LIMIT 1)", (image_size,))
+    db.commit()
+    db.close()
+    print(f"Output size of image generator set to: {image_size}")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -297,6 +324,8 @@ if __name__ == "__main__":
             clear_chat_history()
         elif sys.argv[1] == "google-api":
             update_google_api_key()
+        elif sys.argv[1] == "image-gen":
+            configure_image_gen()
         else:
             print("Invalid option. Use --help or -h for usage information.")
     else:

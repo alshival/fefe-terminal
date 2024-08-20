@@ -84,7 +84,7 @@ def handle_tool_calls(prompt_id,tool_calls):
                 user_json = functions.get_chat_message(prompt_id)
                 user_json = {'role':'user','content': user_json['content'] + [image_content]}
                 functions.update_chat_message(prompt_id,user_json)
-                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user",'tool_call_id': tool_call.id},prompt_id)
+                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user. You can now respond to their previous message..",'tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
                 functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},prompt_id)
         

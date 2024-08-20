@@ -49,7 +49,7 @@ Operating System: {os_info}
 
     instructions += f'''
 
-The `view_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `view_image` to view it.
+The `encode_image` tool allows the assistant to view images. If a user asks you about a specific png, jpg, or webp image on their system, use the `encode_image` to view it.
 Call this function only when an image has not yet been encoded and the user is asking about a specific image on their system.
 The `music_player` tool allows you to play audio using the user's music player. Include the path to an audio file to play a specific audio in their default music player. If you do not provide a filepath, their music player will open and the Rick Roll song will play.
 The `documentReader` tool can be used to extract text from documents. 
@@ -110,8 +110,9 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
         json_data = eval(row[1])
         messages.append(json_data)
 
-    # Check token limit.
-    messages = functions.check_tokens(messages,instruction_jsonl)
+    # Check token limit. This function needs to be reworked to include image data. 
+    # Leaving it out for now.
+    # messages = functions.check_tokens(messages,instruction_jsonl)
     # Prepend instructions
     messages = instruction_jsonl + messages
     #print(messages)
@@ -123,6 +124,7 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
             temperature=0.8
         )
     except openai.error.BadRequestError as e:
+        print(e)
         user_json = functions.get_chat_message(chat_id)
         functions.clear_chat_history()
         chat_id = functions.update_chat_history(user_json)

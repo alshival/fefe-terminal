@@ -30,10 +30,13 @@ def encode_file(image_path):
 
 def encode_image(filepath):
    base64_image = encode_file(filepath)
+   filetype = functions.filetype(filepath)
+   if filetype == 'jpg':
+     filetype = 'jpeg'
    try:
      payload = {
        "type": "image_url",
-       "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
+       "image_url": {"url": f"data:image/{filetype};base64,{base64_image}"}
        }
      return payload 
    except:

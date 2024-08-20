@@ -10,9 +10,8 @@ from openai.types.chat.chat_completion_message_tool_call import Function
 from openai.types.chat.chat_completion import Choice
 
 class Model:
-    def __init__(self, name, context_limit, response_limit):
+    def __init__(self, name, response_limit):
         self.name = name
-        self.context_limit = context_limit
         self.response_limit = response_limit
 
         # Define token_limit based on model.name
@@ -27,7 +26,7 @@ class Model:
 
 
 # Create an instance of the Model class using the dictionary values
-model_data = {"name": "gpt-4o-mini", "context_limit": 30000, "response_limit": 5000}
+model_data = {"name": "gpt-4o-mini", "response_limit": 8000}
 model = Model(**model_data)
 
 def check_tokens(messages,instructions = None):
@@ -54,6 +53,7 @@ def check_tokens(messages,instructions = None):
         except (TypeError, KeyError):
             pass
         messages = messages[1:]
+
     return messages
 #######################################################################
 # Common functions 
@@ -315,7 +315,7 @@ def clear_chat_history(source_id = None):
         cursor.execute("delete from chat_history where source_id = ?",(source_id,))
     db.commit()
     db.close()
-    
+
 def delete_chat_message(chat_id):
     db = db_connect()
     cursor = db.cursor()
