@@ -46,7 +46,14 @@ def check_tokens(messages,instructions = None):
         # Update the messages string and token count
         messages_string = str(messages)
         tokens = len(enc.encode(messages_string))
-    
+    # Now, ensure the list starts with a message from the user. This removes old tool calls.
+    while messages:
+        try:
+            if messages[0]['role'] == 'user':
+                break
+        except (TypeError, KeyError):
+            pass
+        messages = messages[1:]
     return messages
 #######################################################################
 # Common functions 
@@ -85,7 +92,7 @@ def get_home_path():
 def get_config():
     conn = db_connect()
     c = conn.cursor()
-    c.execute("SELECT api_key, org_id, os_info, personality, user_display_name, wsl FROM config LIMIT 1")
+    c.execute("SELECT openai_api_key, org_id, os_info, personality, user_display_name, wsl FROM config LIMIT 1")
     row = c.fetchone()
     conn.close()
     if row:
@@ -93,6 +100,29 @@ def get_config():
     else:
         print("API key not found. Please run 'fefe-setup' to configure.")
         sys.exit(1)
+
+import sys
+
+import sys
+
+def get_google_api_key():
+    conn = db_connect()
+    c = conn.cursor()
+
+    c.execute("SELECT google_api_key FROM config_extras LIMIT 1")
+    row = c.fetchone()
+    conn.close()
+
+    if row:
+        if row[0] is not None:
+            return row[0]
+        else:
+            print("Google API key is not set. Run `fefe-setup google-api`")
+            sys.exit(1)
+    else:
+        print("Google API key configuration does not exist. Please run 'fefe-setup google-api' to configure support.")
+        sys.exit(1)
+
 
 def is_wsl():
     conn = db_connect()
@@ -198,15 +228,15 @@ def db_connect():
 #----------------------------------------------------------------------
 # Chat History
 #----------------------------------------------------------------------
-def update_chat_history(message, source=None):
+def update_chat_history(message, source_id=None):
     message_string = str(message)
     db = db_connect()
     cursor = db.cursor()
 
     cursor.execute("""
-    INSERT INTO chat_history (message, source)
+    INSERT INTO chat_history (message, source_id)
     VALUES (?,?)
-    """, (message_string, source,))
+    """, (message_string, source_id,))
 
     # Retrieve the id of the newly inserted row
     chat_id = cursor.lastrowid
@@ -221,10 +251,17 @@ def get_chat_history(limit=6):
     cursor = db.cursor()
     
     cursor.execute("""
-    with tbl as (
-        SELECT id, message, source, timestamp
+    with starting_id as (
+        select id from chat_history 
+        where source_id is null
+        order by timestamp desc
+        limit ?
+    ),
+    tbl as (
+        SELECT id, message, source_id, timestamp
         FROM chat_history
-        ORDER BY timestamp desc LIMIT ?
+        where id >= (select min(id) from starting_id)
+        ORDER BY timestamp desc
     )
     select * from tbl order by timestamp
     """, (limit,))  # Pass limit as a tuple
@@ -233,12 +270,6 @@ def get_chat_history(limit=6):
     results = cursor.fetchall()
     
     db.close()
-    
-    # # Convert the JSON strings back to Python dictionaries (if applicable)
-    # chat_history = []
-    # for row in results:
-    #     json_data = eval(row[0])
-    #     chat_history.append(json_data)
     
     return results
 
@@ -275,13 +306,13 @@ def update_chat_message(chat_id, new_message):
     db.commit()
     db.close()
 
-def clear_chat_history(source = None):
+def clear_chat_history(source_id = None):
     db = db_connect()
     cursor = db.cursor()
-    if source is None:
+    if source_id is None:
         cursor.execute("delete from chat_history")
     else:
-        cursor.execute("delete from chat_history where source = ?",(source,))
+        cursor.execute("delete from chat_history where source_id = ?",(source_id,))
     db.commit()
     db.close()
 def delete_chat_message(chat_id):

@@ -19,7 +19,7 @@ def format_response(text):
     else:
         return text
 
-def respond_to_chat(prompt_id, source = 'fefe'):
+def respond_to_chat(prompt_id):
     api_key, org_id, os_info, personality, user_display_name, wsl = functions.get_config()
     client = OpenAI(
         api_key=api_key,
@@ -45,19 +45,6 @@ Files:
         
     instructions +='''
 Operating System: {os_info}
-
-You can use the `run_commands` tool for interacting with the user's operating system. If you are executing python code, use the `run_python` tool instead. To use the `run_commands` tool, pass the commands to be run as a list in the `commands` parameter. Do not set `verbose=True` unless the user specifically requests that you show them the output.
-The outputs of each command run are independent of one-another, so utilize the pipe operator when needed, such as `commands=['ls -lt | head -n 1']` instead of `commands=['ls -lt','head -n 1']`.
-For example, if a linux user wishes to know the path to the current directory, you can use `run_commands` with `commands=['pwd']`. 
-If asked to search for files within a directory, avoid searching within subdirectories unless asked by the user to search within subdirectories. For example, if asked about files older than a week in the current directory, you would use something like `find . -maxdepth 1 -type f -mtime +7` to avoid searching within subdirectories unless the user requests that you search deeper.
-
-You can use the `run_python` to execute python code by including your code in the `code` parameter. Use this tool when generating data visualizations, financial charts, or interacting with hardware like the user's webcam.
-You can use plotly (preferred) and matplotlib to create visualizations.
-If a user asks you to generate charts for stock tickers, use `run_python` with the `yfinance` package. 
-When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
-Before saving an image, assign a variable to the path. For example, `image_path = ./financial_chart.png`.
-You must follow up with a call to `open_image` when generating plots and charts using `run_python` unless an error occurred during execution.
-If there is an error executing the code, you may make up to two additional attempts. After that, notify the user of the issues you ran into.
 '''
 
     instructions += f'''
@@ -70,7 +57,9 @@ If a user asks about a document, use `documentReader` to retrieve the contents. 
 
 The `image_gen` tool allows you to generate images. Describe the image in the `prompt` parameter and provide a `filepath` to store the image, for example `filepath="./flower_garden.png"`
 
-The `browser` tool allows you to interact with websites. If asked to do a search, utilize a site's `/search?q=<query>` endpoint. For example, if asked to search for a recipe for homemade lemonade,
+The `browser` tool allows you to interact with websites, search, and open links for the user. To open links for the user, use `'open_for_user': True`. 
+When searching YouTube, use the `search_youtube` function instead to retrieve results.
+If asked to do a search, utilize a site's `/search?q=<query>` endpoint. For example, if asked to search for a recipe for homemade lemonade,
 ```
 https://www.google.com/search?q=homemade+lemonade
 https://www.bing.com/search?q=homemade+lemonade
@@ -90,6 +79,22 @@ DuckDuckGo also provides some limited advanced search. The `df` parameter (`y` f
 https://duckduckgo.com/?q=homemade+lemonade&t=h_&df=y
 ```
 When you wish to include results from multiple sources, use a tool call for each source.
+
+If asked to open or play a YouTube video, first use the `search_youtube` function to search for results, then open a relevant url using the `browser` tool with `open_for_user = True`.
+
+You can use the `run_commands` tool for interacting with the user's operating system by running commands. If you are executing python code, use the `run_python` tool instead. To use the `run_commands` tool, pass the commands to be run as a list in the `commands` parameter. Do not set `verbose=True` unless the user specifically requests that you show them the output. 
+The outputs of each command run are independent of one-another, so utilize the pipe operator when needed, such as `commands=['ls -lt | head -n 1']` instead of `commands=['ls -lt','head -n 1']`.
+For example, if a linux user wishes to know the path to the current directory, you can use `run_commands` with `commands=['pwd']`. 
+If asked to search for files within a directory, avoid searching within subdirectories unless asked by the user to search within subdirectories. For example, if asked about files older than a week in the current directory, you would use something like `find . -maxdepth 1 -type f -mtime +7` to avoid searching within subdirectories unless the user requests that you search deeper.
+Do not use `run_commands` when searching the internet. Use the `browser` tool for searching the internet instead.
+
+You can use the `run_python` to execute python code by including your code in the `code` parameter. Use this tool when generating data visualizations, financial charts, or interacting with hardware like the user's webcam.
+You can use plotly (preferred) and matplotlib to create visualizations.
+If a user asks you to generate charts for stock tickers, use `run_python` with the `yfinance` package. 
+When using matplotlib, do not use `.show()` to display the image as it will cause issues with the terminal. Instead, when using matplotlib, follow up the `run_python` function call with an `open_image(filepath)` function call. This will open the image for the user.
+Before saving an image, assign a variable to the path. For example, `image_path = ./financial_chart.png`.
+You must follow up with a call to `open_image` when generating plots and charts using `run_python` unless an error occurred during execution.
+If there is an error executing the code, you may make up to two additional attempts. After that, notify the user of the issues you ran into.
 
 You can delay your final response until after the completion of any of the above tools so that you have the information needed to respond.
 
@@ -139,14 +144,14 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
     response = chat_completion.choices[0].message
     tool_calls = response.tool_calls
     if not tool_calls:
-        #functions.update_chat_history({'role':'assistant','content':response.content},source)
-        functions.update_chat_history(response,'fefe')
+        functions.update_chat_history(response,prompt_id)
         formatted_response = format_response(response.content)
         print(formatted_response)
     else:
         # handle tool calls
-        functions.update_chat_history(response,'fefe')
+        functions.update_chat_history(response,prompt_id)
         tools.handle_tool_calls(prompt_id,tool_calls)
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: fefe <prompt>")

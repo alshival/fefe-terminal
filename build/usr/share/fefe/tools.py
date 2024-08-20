@@ -7,6 +7,7 @@ from src import browser
 from src import image_gen
 from src import open_image
 from src import music_player
+from src import search_youtube
 import fefe
 import json 
 
@@ -16,6 +17,7 @@ available_tools = {
     'encode_image': encode_image.encode_image,
     'documentReader': documentReader.documentReader,
     'browser': browser.browser,
+    'search_youtube': search_youtube.search_youtube,
     'image_gen': image_gen.image_gen,
     'open_image': open_image.open_image,
     'music_player': music_player.music_player
@@ -30,9 +32,10 @@ tools = [
     image_gen.spec,
     open_image.spec,
     music_player.spec,
+    search_youtube.spec
     ]
 
-def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
+def handle_tool_calls(prompt_id,tool_calls):
 
     for tool_call in tool_calls:
         function_name = tool_call.function.name
@@ -56,9 +59,9 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
     ```
     {function_response}
     ```
-    ''','tool_call_id': tool_call.id},'run_commands')
+    ''','tool_call_id': tool_call.id}, prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id': tool_call.id},'run_commands')
+                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id': tool_call.id},prompt_id)
             
         if function_name == 'run_python':
             arguments = function_args.get('code')
@@ -69,9 +72,9 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                     prompt_id = prompt_id,
                     code = arguments
                 )
-                functions.update_chat_history({'role':'tool','content':f'output: {output} \n\nDone.','tool_call_id': tool_call.id},'run_python')
+                functions.update_chat_history({'role':'tool','content':f'output: {output} \n\nDone.','tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'An error occured while executing the script: {e}','tool_call_id':tool_call.id},'run_python')
+                functions.update_chat_history({'role':'tool','content':f'An error occured while executing the script: {e}','tool_call_id':tool_call.id},prompt_id)
 
         if function_name == 'encode_image':
             try:
@@ -81,18 +84,18 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 user_json = functions.get_chat_message(prompt_id)
                 user_json = {'role':'user','content': user_json['content'] + [image_content]}
                 functions.update_chat_message(prompt_id,user_json)
-                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user",'tool_call_id': tool_call.id},'encode_image')
+                functions.update_chat_history({'role':'tool','content':f"Image was encoded for the user",'tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},'encode_image')
+                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},prompt_id)
         
         if function_name == 'documentReader':
             try:
                 document_text = function_to_call(
                     filepath = function_args.get('filepath')
                 )
-                functions.update_chat_history({'role':'tool','content':f'text: {document_text}','tool_call_id': tool_call.id},'documentReader')
+                functions.update_chat_history({'role':'tool','content':f'text: {document_text}','tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},'documentReader')
+                functions.update_chat_history({'role':'tool','content':f'Error: {e}','tool_call_id':tool_call.id},prompt_id)
 
         if function_name == 'browser':
             try:
@@ -100,14 +103,15 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                     url = function_args.get('url'),
                     open_for_user = function_args.get('open_for_user',False)
                 )
-                functions.update_chat_history({"role": "tool", "content": f'url_content: {url_data}','tool_call_id': tool_call.id},'browser')
+                functions.update_chat_history({"role": "tool", "content": f'url_content: {url_data}','tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({"role":"tool","content":f"There was an issue fetching the information from {function_args.get("url")} \n Error: \n{e}",'tool_call_id': tool_call.id},'browser')
+                functions.update_chat_history({"role":"tool","content":f"There was an issue fetching the information from {function_args.get("url")} \n Error: \n{e}",'tool_call_id': tool_call.id},prompt_id)
 
         if function_name == 'image_gen':
             function_to_call(
                 prompt = function_args.get('prompt'),
                 filepath = function_args.get('filepath'),
+                prompt_id = prompt_id,
                 tool_call = tool_call
             )
         
@@ -116,17 +120,25 @@ def handle_tool_calls(prompt_id,tool_calls,source='fefe'):
                 function_to_call(
                     filepath = function_args.get('filepath')
                 )
-                functions.update_chat_history({'role':'tool','content':'Image was opened for the user.','tool_call_id': tool_call.id},'open_image')
+                functions.update_chat_history({'role':'tool','content':'Image was opened for the user.','tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the image for the user: {e}','tool_call_id': tool_call.id},'open_image')
+                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the image for the user: {e}','tool_call_id': tool_call.id},prompt_id)
         if function_name == 'music_player':
             try:
                 function_to_call(
                     filepath = function_args.get('filepath',None)
                 )
-                functions.update_chat_history({'role':'tool','content':'The music player was opened for the user.','tool_call_id': tool_call.id},'open_image')
+                functions.update_chat_history({'role':'tool','content':'The music player was opened for the user.','tool_call_id': tool_call.id},prompt_id)
             except Exception as e:
-                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the music player for the user: {e}','tool_call_id': tool_call.id},'open_image')
+                functions.update_chat_history({'role':'tool','content':f'There was an issue opening the music player for the user: {e}','tool_call_id': tool_call.id},prompt_id)
 
+        if function_name == 'search_youtube':
+            try:
+                results = function_to_call(
+                    query =  function_args.get("query")
+                )
+                functions.update_chat_history({'role':'tool','content':f'Search Results:\n {results}','tool_call_id':tool_call.id}, prompt_id)
+            except Exception as e:
+                functions.update_chat_history({'role':'tool','content':f'There was an issue using the YouTube Data API: \n {e} \n\n If it is an issue with credentials, inform the user they can set their google api key using `fefe-setup google-api`. ','tool_call_id':tool_call.id},prompt_id)
     fefe.respond_to_chat(prompt_id)
     

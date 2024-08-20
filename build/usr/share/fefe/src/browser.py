@@ -1,7 +1,7 @@
 import requests 
 from bs4 import BeautifulSoup
 from src import functions
-from src import run_commands
+import subprocess
 import webbrowser
 import os
 
@@ -74,7 +74,7 @@ def extract_metadata(soup):
 def browser(url,open_for_user=False):
     if open_for_user:
         if functions.is_wsl():
-            output = run_commands.run_commands([f"wslview {url}"])
+            subprocess.run(["wslview",f"{url}"])
         else:
             webbrowser.open(url)
     
