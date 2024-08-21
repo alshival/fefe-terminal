@@ -100,8 +100,9 @@ fefe-setup --help
 ```
 
 # TO-DO
-1. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
-2. Semantic search.
+1. Fefe struggles with directory paths when switching between directories. Need to work on improving performance here.
+2. Give the bot the ability to pick out memories. These memories can be included during fine-tuning.
+3. Semantic search.
 
 # Future Work
 Fefe-Terminal provides base-line functionality expected from AI/OS integration. Fefe falls short when asked to search for content within local files. Questions like "can you find the file where I wrote about my trip to Antartica?" are difficult for Fefe to answer at the moment. There has been much development in recent years on this front. Naive RAG and GraphRAG algorithms could help provide the Ai with file context for these kinds of requests, though (especially GraphRAG) are computationally expensive and could affect response times. Still, it is worth exploring, and if vector databases are used only when such a request is made, response times should remain unaffected.
