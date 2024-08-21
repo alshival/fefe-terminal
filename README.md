@@ -63,6 +63,11 @@ After installation, set up Fefe by running:
 fefe-setup
 ```
 
+On Windows Linux Subsystem, you will need to install the `wslu` package in order to support integration with the Windows operating system;
+```
+sudo apt-get install -y wslu
+```
+
 During setup, you will be prompted to provide:
 
 - **OpenAI API Key**: Required to access Fefe's AI capabilities.
