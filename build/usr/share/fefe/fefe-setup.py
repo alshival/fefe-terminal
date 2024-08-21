@@ -108,15 +108,15 @@ def initialize_db():
 def setup():
 
     # Now call the individual update functions
-    update_openai_api_key()
-    update_org_id()
-    update_sudo_password()
-    choose_text_color()
-    update_personality()
+    update_openai_api_key(quiet=True)
+    update_org_id(quiet=True)
+    update_sudo_password(quiet=True)
+    choose_text_color(quiet=True)
+    update_personality(quiet=True)
 
     print(f"Setup complete. You can now use the 'fefe' command.")
 
-def choose_text_color():
+def choose_text_color(quiet = False):
     initialize_db()
     n = 3  # Number of colors per row
     max_length = max(len(color_name) for color_name in functions.COLOR_OPTIONS) + 2  # Calculate the max length of color names + padding
@@ -144,11 +144,11 @@ def choose_text_color():
     c.execute("UPDATE config SET text_color = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (color_choice,))
     conn.commit()
     conn.close()
-    
-    print(f"Text color set to {color_choice}.")
+    if not quiet:
+        print(f"Text color set to {color_choice}.")
 
 
-def update_openai_api_key():
+def update_openai_api_key(quiet = False):
     initialize_db()
     openai_api_key = getpass.getpass("Please enter your OpenAI API key: ").strip()
     if not openai_api_key:
@@ -160,10 +160,10 @@ def update_openai_api_key():
     c.execute("UPDATE config SET openai_api_key = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (openai_api_key,))
     conn.commit()
     conn.close()
-    
-    print("OpenAI API key updated successfully.")
+    if not quiet:
+        print("OpenAI API key updated successfully.")
 
-def update_google_api_key():
+def update_google_api_key(quiet = False):
     initialize_db()
     google_api_key = getpass.getpass("Please enter your Google API key: ").strip()
     if not google_api_key:
@@ -175,10 +175,10 @@ def update_google_api_key():
     c.execute("UPDATE config_extras SET google_api_key = ? WHERE id = (SELECT id FROM config_extras ORDER BY id DESC LIMIT 1)", (google_api_key,))
     conn.commit()
     conn.close()
-    
-    print("Google API key updated successfully.")
+    if not quiet:
+        print("Google API key updated successfully.")
 
-def update_org_id():
+def update_org_id(quiet = False):
     initialize_db()
     org_id = input("Please enter your Organization ID (Optional): ").strip()
     if not org_id:
@@ -189,11 +189,11 @@ def update_org_id():
     c.execute("UPDATE config SET org_id = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (org_id,))
     conn.commit()
     conn.close()
-    
-    print("Organization ID updated successfully.")
+    if not quiet:
+        print("Organization ID updated successfully.")
 
 
-def update_sudo_password():
+def update_sudo_password(quiet = False):
     initialize_db()
     sudo_password = getpass.getpass("Please enter your sudo password (Optional): ").strip()
     if not sudo_password:
@@ -205,11 +205,11 @@ def update_sudo_password():
     c.execute("UPDATE config SET sudo_password = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (sudo_password,))
     conn.commit()
     conn.close()
-    
-    print("Sudo password updated successfully.")
+    if not quiet:
+        print("Sudo password updated successfully.")
 
 
-def update_personality():
+def update_personality(quiet = False):
     initialize_db()
     personality = input(f"Set Fefe's personality (default is '{default_personality}'): ").strip()
 
@@ -221,11 +221,11 @@ def update_personality():
     c.execute("UPDATE config SET personality = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (personality,))
     conn.commit()
     conn.close()
-    
-    print(f"Personality set to '{personality}'.")
+    if not quiet:
+        print(f"Personality set to '{personality}'.")
 
 
-def update_wsl():
+def update_wsl(quiet = False):
     initialize_db()
     wsl = functions.is_wsl_subprocess()
     if wsl:
@@ -244,16 +244,17 @@ def update_wsl():
         
         # Install python-tk to enable TkAgg backend for matplotlib
         install_wsl_dependencies()
-        print("wsl support enabled.")
+        if not quiet:
+            print("wsl support enabled.")
     else:
         # Set wsl support to disabled
         c.execute('UPDATE config SET wsl = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)', (0,))
         conn.commit()
         conn.close()
-        
-        print("wsl support disabled.")
+        if not quiet:
+            print("wsl support disabled.")
 
-def clear_chat_history():
+def clear_chat_history(quiet = False):
     initialize_db()
     print("Would you like to wipe Fefe's memory?")
     answer = input("Yes/No: ").strip()
@@ -276,7 +277,7 @@ def install_wsl_dependencies():
     except Exception as e:
         print("Error installing the `wslu`, which Fefe uses to open images on Windows Subsystem for Linux. Install it manually with \033[1msudo apt install -y wslu\033[0m")
 
-def select_image_gen_size():
+def select_image_gen_size(quiet = False):
     choices = ["1024x1024", "1024x1792", "1792x1024"]
     
     print("Set output size for image generator:")
@@ -293,14 +294,15 @@ def select_image_gen_size():
         except ValueError:
             print("Invalid input, please enter a number.")
 
-def configure_image_gen():
+def configure_image_gen(quiet = False):
     image_size = select_image_gen_size()
     db = functions.db_connect()
     cursor = db.cursor()
     cursor.execute("UPDATE config_extras SET image_gen_size = ? WHERE id = (SELECT id FROM config_extras ORDER BY id DESC LIMIT 1)", (image_size,))
     db.commit()
     db.close()
-    print(f"Output size of image generator set to: {image_size}")
+    if not quiet:
+        print(f"Output size of image generator set to: {image_size}")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

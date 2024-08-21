@@ -1,4 +1,4 @@
-# Fefe: Your AI Assistant for Linux (Ubuntu & Windows Subsystem for Linux)
+# Fefe: Your AI Assistant for Linux (Ubuntu 24.04 & Windows Subsystem for Linux)
 By [Alshival's Data Service](https://alshival.com)
 
 **Fefe** is a powerful AI assistant designed specifically for Linux users, with a current focus on Ubuntu. Communicate with Fefe directly from your terminal to perform various tasks, from running command-line commands to generating insightful visualizations.

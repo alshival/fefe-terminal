@@ -306,13 +306,10 @@ def update_chat_message(chat_id, new_message):
     db.commit()
     db.close()
 
-def clear_chat_history(source_id = None):
+def clear_chat_history():
     db = db_connect()
     cursor = db.cursor()
-    if source_id is None:
-        cursor.execute("delete from chat_history")
-    else:
-        cursor.execute("delete from chat_history where source_id = ?",(source_id,))
+    cursor.execute("delete from chat_history")
     db.commit()
     db.close()
 

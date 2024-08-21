@@ -123,11 +123,15 @@ The current date is {datetime.now().astimezone().strftime("%A, %B %d, %Y %H:%M:%
             tools = tools.tools,
             temperature=0.8
         )
-    except openai.error.BadRequestError as e:
-        print(e)
+    except openai.BadRequestError as e:
+        # If there is an error, wipe the memory database.
+        # Grab user's latest message.
         user_json = functions.get_chat_message(chat_id)
+        # Clear history
         functions.clear_chat_history()
+        # Reinsert latest user message
         chat_id = functions.update_chat_history(user_json)
+        # Attempt to reply again.
         respond_to_chat(chat_id)
         return
     except Exception as e:

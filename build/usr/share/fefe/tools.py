@@ -41,10 +41,7 @@ def handle_tool_calls(prompt_id,tool_calls):
         function_name = tool_call.function.name
         #print(function_name)
         function_to_call = available_tools.get(function_name,None)
-        try:
-            function_args = json.loads(tool_call.function.arguments)
-        except Exception as e:
-            function_args = {'code':tool_call.function.arguments}
+        function_args = json.loads(tool_call.function.arguments)
         
         if function_name == 'run_commands':
             try:
