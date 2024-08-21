@@ -34,7 +34,8 @@ Description of your personality and relationship with {user_display_name}:
 {personality}
 ```
 
-User's current working directory: {os.getcwd()}
+The user is currently in the following directory: {os.getcwd()}
+The user may have changed directories. Be sure your paths are relative to the current directory.
 '''
     if len(os.listdir('.')) <= 25:
         instructions += f'''

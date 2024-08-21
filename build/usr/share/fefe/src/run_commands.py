@@ -46,7 +46,7 @@ def run_command(command,verbose):
 
     while True:
         try:
-            i = child.expect([pexpect.TIMEOUT, pexpect.EOF, r'[Pp]assword', r'[Yy]es/[Nn]o', r'Enter.*:', r'.*\? $'], timeout=100)
+            i = child.expect([pexpect.TIMEOUT, pexpect.EOF, r'[Pp]assword', r'[Yy]es/[Nn]o', r'Enter.*:', r'.*\? $'], timeout=600)
 
             output += child.before.decode('utf-8')
             

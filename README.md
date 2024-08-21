@@ -63,7 +63,7 @@ After installation, set up Fefe by running:
 fefe-setup
 ```
 
-On Windows Linux Subsystem, you will need to install the `wslu` package in order to support integration with the Windows operating system;
+The `wslu` package is required for WSL support. It is set to install during installation of the bot, though if needed, you can manually install it.
 ```
 sudo apt-get install -y wslu
 ```
