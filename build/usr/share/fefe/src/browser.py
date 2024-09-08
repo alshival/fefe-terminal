@@ -4,6 +4,9 @@ from src import functions
 import subprocess
 import webbrowser
 import os
+import brotli
+import gzip
+import zlib
 
 spec =     {
         "type": "function",
@@ -41,16 +44,58 @@ If asked to search for something or pull up results from the web, use the `brows
 
 
 def get_soup(url):
+    headers = {
+        "method": "GET",
+        "scheme": "https",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "en-US,en;q=0.9",
+        "cache-control": "max-age=0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0",
+        "sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Microsoft Edge";v="128"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1"
+    }
+
     # Send a GET request to the URL
-    response = requests.get(url)
-    
+    response = requests.get(url, headers=headers)
     # Check if the request was successful
     if response.status_code != 200:
         raise Exception(f"Failed to load page {url}")
     
-    # Parse the content of the request with BeautifulSoup
-    soup = BeautifulSoup(response.content, 'html.parser')
+    content_encoding = response.headers.get('content-encoding')
     
+    # Handle Brotli encoding
+    if content_encoding == 'br':
+        try:
+            decoded_content = brotli.decompress(response.content)
+        except Exception as e:
+            decoded_content = response.content
+    # Handle Gzip encoding
+    elif content_encoding == 'gzip':
+        try:
+            decoded_content = gzip.decompress(response.content)
+        except:
+            decoded_content = response.content
+    
+    # Handle Deflate encoding
+    elif content_encoding == 'deflate':
+        try:
+            decoded_content = zlib.decompress(response.content)
+        except:
+            decoded_content = response.content
+    
+    # If no encoding, just use the response content
+    else:
+        decoded_content = response.content
+
+    # Parse the content of the request with BeautifulSoup
+    soup = BeautifulSoup(decoded_content, 'html.parser')
     return soup
 
 def extract_text_and_links_from_body(soup):

@@ -155,7 +155,7 @@ def update_openai_api(quiet = False):
 
     conn = functions.db_connect()
     c = conn.cursor()
-    c.execute("UPDATE config SET openai_api_key = ?, org_id WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (openai_api_key,org_id,))
+    c.execute("UPDATE config SET openai_api_key = ?, org_id = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (openai_api_key,org_id,))
     conn.commit()
     conn.close()
     if not quiet:
