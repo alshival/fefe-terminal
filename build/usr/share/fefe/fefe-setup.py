@@ -21,9 +21,8 @@ def print_help():
       text-color            Choose a text color for your fefe configuration.
                             This will prompt you to select a color and save it to your configuration.
       sudo                  Update your stored sudo password.
-      api-key               Update your OpenAI API key.
+      openai-api            Update your OpenAI API key.
       google-api            Update your Google API key.
-      organization-id       Update your Organization ID.
       personality           Update the personality for your fefe configuration.
       wipe-memory           Wipe Fefe's memory. Clears the chat history.
       wsl                   Enable or disable WSL (Windows Subsystem for Linux) support.
@@ -41,10 +40,8 @@ def print_help():
       fefe-setup            Starts the setup process.
       fefe-setup text-color Allows you to choose a new text color for your output.
       fefe-setup sudo       Updates your stored sudo password.
-      fefe-setup api-key    Updates your OpenAI API key.
-      fefe-setup google-api Updates your Google API key.
-      fefe-setup organization-id
-                           Updates your Organization ID.
+      fefe-setup openai-api Updates your OpenAI API credentials.
+      fefe-setup google-api Updates your Google API credentials.
       fefe-setup personality
                            Updates the personality for your fefe configuration.
       fefe-setup image-gen  Set output size for image generator (default 1024x1024)
@@ -106,10 +103,8 @@ def initialize_db():
     conn.close()
 
 def setup():
-
     # Now call the individual update functions
-    update_openai_api_key(quiet=True)
-    update_org_id(quiet=True)
+    update_openai_api(quiet=True)
     update_sudo_password(quiet=True)
     choose_text_color(quiet=True)
     update_personality(quiet=True)
@@ -148,20 +143,23 @@ def choose_text_color(quiet = False):
         print(f"Text color set to {color_choice}.")
 
 
-def update_openai_api_key(quiet = False):
+def update_openai_api(quiet = False):
     initialize_db()
     openai_api_key = getpass.getpass("Please enter your OpenAI API key: ").strip()
     if not openai_api_key:
         print("API key cannot be empty. No changes were made.")
         return
+    org_id = input("Please enter your Organization ID (Optional): ").strip()
+    if not org_id:
+        org_id = None  # Allow empty organization ID
 
     conn = functions.db_connect()
     c = conn.cursor()
-    c.execute("UPDATE config SET openai_api_key = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (openai_api_key,))
+    c.execute("UPDATE config SET openai_api_key = ?, org_id WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (openai_api_key,org_id,))
     conn.commit()
     conn.close()
     if not quiet:
-        print("OpenAI API key updated successfully.")
+        print("OpenAI API credentials updated successfully.")
 
 def update_google_api_key(quiet = False):
     initialize_db()
@@ -177,21 +175,6 @@ def update_google_api_key(quiet = False):
     conn.close()
     if not quiet:
         print("Google API key updated successfully.")
-
-def update_org_id(quiet = False):
-    initialize_db()
-    org_id = input("Please enter your Organization ID (Optional): ").strip()
-    if not org_id:
-        org_id = None  # Allow empty organization ID
-
-    conn = functions.db_connect()
-    c = conn.cursor()
-    c.execute("UPDATE config SET org_id = ? WHERE id = (SELECT id FROM config ORDER BY id DESC LIMIT 1)", (org_id,))
-    conn.commit()
-    conn.close()
-    if not quiet:
-        print("Organization ID updated successfully.")
-
 
 def update_sudo_password(quiet = False):
     initialize_db()
@@ -314,10 +297,8 @@ if __name__ == "__main__":
             choose_text_color()
         elif sys.argv[1] == "sudo":
             update_sudo_password()
-        elif sys.argv[1] == "api-key":
-            update_openai_api_key()
-        elif sys.argv[1] == "organization-id":
-            update_org_id()
+        elif sys.argv[1] == "openai-api":
+            update_openai_api()
         elif sys.argv[1] == "personality":
             update_personality()
         elif sys.argv[1] == "wsl":

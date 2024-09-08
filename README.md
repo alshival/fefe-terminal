@@ -76,6 +76,41 @@ During setup, you will be prompted to provide:
 
 <b>A SQLite database called `.fefe.db` will be created in your home directory, `~/.fefe.db`. Upgrading Fefe to the latest version may require you to delete `~/.fefe.db`.</b>  
 
+## YouTube Support
+Fefe can search YouTube using the YouTube Data API. This feature requires a Google API Key, which you can set using `fefe-setup google-api`. 
+Here are the steps to obtaining your Google API key.
+
+### 1. **Create a Google Cloud Project:**
+   - Visit the [Google Cloud Console](https://console.cloud.google.com/).
+   - If you haven't already, sign in with your Google account.
+   - Click on the **Select a Project** dropdown at the top of the page.
+   - Click **New Project** and give your project a name (e.g., "Fefe YouTube Search").
+   - Click **Create** to establish your new project.
+
+### 2. **Enable the YouTube Data API:**
+   - While in your new project, go to the **Navigation Menu** (three horizontal lines) in the upper left.
+   - Select **APIs & Services** > **Library**.
+   - In the search bar, type "YouTube Data API v3" and click on it.
+   - Click the **Enable** button to activate the API for your project.
+
+### 3. **Create Credentials for the API Key:**
+   - After enabling the API, you’ll be prompted to create credentials.
+   - Click on **Create Credentials** at the top of the APIs & Services page.
+   - Choose **API Key** from the dropdown menu.
+   - Google will generate an API Key for you. Copy this key and store it securely.
+
+### 4. **Restrict Your API Key (Optional but Recommended):**
+   - Click on **Restrict Key** to set usage restrictions.
+   - Under **Application Restrictions**, you can limit key usage to specific IP addresses, HTTP referrers, or mobile apps.
+   - Under **API Restrictions**, select **YouTube Data API v3** to ensure the key is only used for this specific API.
+   - Save your changes.
+
+### 5. **Use the API Key in Fefe:**
+   - Now, you can use this API key with the `fefe` command to search YouTube. 
+   - Make sure to input the API key when prompted or store it in your application's configuration as needed.
+
+That's it! You now have a Google API Key for accessing the YouTube Data API.
+
 ## Uninstalling/Reinstalling
 
 You can uninstall the app using
