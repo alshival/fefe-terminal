@@ -20,6 +20,7 @@ def format_response(text):
         return text
 
 def respond_to_chat(chat_id):
+
     api_key, org_id, os_info, personality, user_display_name, wsl = functions.get_config()
     client = OpenAI(
         api_key=api_key,
@@ -155,6 +156,18 @@ def main():
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])
+    api_key, org_id, os_info, personality, user_display_name, wsl = functions.get_config()
+    client = OpenAI(
+        api_key=api_key,
+        organization=org_id
+    ) 
+    moderation = client.moderations.create(input=prompt)
+    failed = 0
+    for category in ['sexual/minors']:
+        failed += 1*moderation.results[0].categories.to_dict().get(category)
+    if failed > 0:
+        print(f"Sorry... OpenAi won't let me respond to that.")
+        return
     user_json = {'role':'user', 'content': [{'type':'text','text':prompt}]}
     chat_id = functions.update_chat_history(user_json)
 
